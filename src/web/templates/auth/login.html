@@ -1,0 +1,230 @@
+{% extends "base.html" %}
+
+{% block title %}Anmeldung - Datenschutz-Rechtsprechung API{% endblock %}
+
+{% block extra_css %}
+<style>
+.login-container {
+    min-height: 70vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, #6c757d 0%, #495057 100%);
+    margin: -1.5rem -15px 0;
+    padding: 2rem 15px;
+}
+
+.login-card {
+    background: white;
+    border-radius: 15px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+    overflow: hidden;
+    max-width: 400px;
+    width: 100%;
+}
+
+.login-header {
+    background: #0d6efd;
+    color: white;
+    padding: 2rem;
+    text-align: center;
+}
+
+.login-header h2 {
+    margin: 0;
+    font-weight: 300;
+    font-size: 1.8rem;
+}
+
+.login-header p {
+    margin: 0.5rem 0 0 0;
+    opacity: 0.9;
+}
+
+.login-form {
+    padding: 2rem;
+}
+
+.form-floating {
+    margin-bottom: 1rem;
+}
+
+.form-floating input {
+    border-radius: 10px;
+    border: 2px solid #dee2e6;
+    transition: border-color 0.3s ease;
+}
+
+.form-floating input:focus {
+    border-color: #0d6efd;
+    box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+}
+
+.btn-login {
+    width: 100%;
+    padding: 0.75rem;
+    border-radius: 10px;
+    font-weight: 500;
+    background: #0d6efd;
+    border: none;
+    transition: all 0.3s ease;
+}
+
+.btn-login:hover {
+    background: #0b5ed7;
+    transform: translateY(-2px);
+}
+
+.remember-me {
+    display: flex;
+    align-items: center;
+    margin: 1rem 0;
+}
+
+.remember-me input {
+    margin-right: 0.5rem;
+}
+
+.login-footer {
+    text-align: center;
+    margin-top: 1.5rem;
+    padding-top: 1rem;
+    border-top: 1px solid #dee2e6;
+}
+
+.login-footer small {
+    color: #6c757d;
+}
+
+.forgot-password-link {
+    text-align: center;
+    margin-top: 1rem;
+    padding-top: 1rem;
+    border-top: 1px solid #dee2e6;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="login-container">
+    <div class="login-card">
+        <div class="login-header">
+            <h2><i class="bi bi-shield-check"></i> Datenschutz-Rechtsprechung API</h2>
+        </div>
+        
+        <div class="login-form">
+            <form method="POST" action="{{ url_for('auth.login') }}" id="loginForm">
+                <!-- CSRF Token -->
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                
+                <div class="form-floating mb-3">
+                    <input type="text" 
+                           class="form-control" 
+                           id="username" 
+                           name="username" 
+                           placeholder="Benutzername"
+                           required 
+                           autofocus
+                           value="{{ request.form.get('username', '') }}">
+                    <label for="username">
+                        <i class="bi bi-person"></i> Benutzername
+                    </label>
+                </div>
+                
+                <div class="form-floating mb-3">
+                    <input type="password" 
+                           class="form-control" 
+                           id="password" 
+                           name="password" 
+                           placeholder="Passwort"
+                           required>
+                    <label for="password">
+                        <i class="bi bi-lock"></i> Passwort
+                    </label>
+                </div>
+                
+                <div class="remember-me">
+                    <input type="checkbox" 
+                           class="form-check-input" 
+                           id="remember_me" 
+                           name="remember_me">
+                    <label class="form-check-label" for="remember_me">
+                        Angemeldet bleiben (24h)
+                    </label>
+                </div>
+                
+                <button type="submit" class="btn btn-primary btn-login">
+                    <i class="bi bi-box-arrow-in-right"></i> Anmelden
+                </button>
+            </form>
+            
+            <div class="forgot-password-link">
+                <a href="{{ url_for('auth.forgot_password') }}" class="text-decoration-none">
+                    <i class="bi bi-envelope"></i> Passwort vergessen?
+                </a>
+            </div>
+            
+            <div class="login-footer">
+                <small>
+                    <i class="bi bi-info-circle"></i>
+                    Standard-Login: <strong>admin</strong> / <strong>admin123</strong><br>
+                    Viewer-Login: <strong>viewer</strong> / <strong>viewer123</strong>
+                </small>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Auto-focus on username field
+document.addEventListener('DOMContentLoaded', function() {
+    const usernameField = document.getElementById('username');
+    if (usernameField && !usernameField.value) {
+        usernameField.focus();
+    }
+});
+
+// Enhanced form validation
+document.getElementById('loginForm').addEventListener('submit', function(e) {
+    const username = document.getElementById('username').value.trim();
+    const password = document.getElementById('password').value;
+    
+    if (!username) {
+        e.preventDefault();
+        alert('Bitte geben Sie einen Benutzernamen ein.');
+        document.getElementById('username').focus();
+        return false;
+    }
+    
+    if (!password) {
+        e.preventDefault();
+        alert('Bitte geben Sie ein Passwort ein.');
+        document.getElementById('password').focus();
+        return false;
+    }
+    
+    if (username.length < 3) {
+        e.preventDefault();
+        alert('Der Benutzername muss mindestens 3 Zeichen lang sein.');
+        document.getElementById('username').focus();
+        return false;
+    }
+    
+    if (password.length < 3) {
+        e.preventDefault();
+        alert('Das Passwort muss mindestens 3 Zeichen lang sein.');
+        document.getElementById('password').focus();
+        return false;
+    }
+});
+
+// Show/hide password toggle (optional enhancement)
+function togglePassword() {
+    const passwordField = document.getElementById('password');
+    const type = passwordField.getAttribute('type') === 'password' ? 'text' : 'password';
+    passwordField.setAttribute('type', type);
+}
+</script>
+{% endblock %}

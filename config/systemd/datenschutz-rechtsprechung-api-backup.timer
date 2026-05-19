@@ -1,0 +1,12 @@
+[Unit]
+Description=Datenschutz-Rechtsprechung API Backup Timer
+Requires=datenschutz-rechtsprechung-api.service
+
+[Timer]
+# Backup täglich um 2:00 Uhr
+OnCalendar=daily
+Persistent=true
+RandomizedDelaySec=1800
+
+[Install]
+WantedBy=timers.target

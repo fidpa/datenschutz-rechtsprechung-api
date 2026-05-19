@@ -1,0 +1,11 @@
+[Unit]
+Description=Datenschutz-Rechtsprechung API Health Monitor
+After=datenschutz-rechtsprechung-api.service
+Wants=datenschutz-rechtsprechung-api.service
+
+[Service]
+Type=oneshot
+User=dsr
+Group=dsr
+WorkingDirectory=/opt/datenschutz-rechtsprechung-api
+ExecStart=/opt/datenschutz-rechtsprechung-api/scripts/health-monitor.sh

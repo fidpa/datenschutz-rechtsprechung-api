@@ -1,0 +1,450 @@
+{% extends "base.html" %}
+
+{% block title %}System-Information - Datenschutz-Rechtsprechung API{% endblock %}
+
+{% block extra_css %}
+<style>
+    .info-card {
+        background: white;
+        border-radius: 12px;
+        padding: 1.5rem;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        margin-bottom: 1.5rem;
+    }
+    .info-label {
+        font-weight: 600;
+        color: #4a5568;
+        margin-bottom: 0.25rem;
+    }
+    .info-value {
+        font-family: 'Courier New', monospace;
+        color: #2d3748;
+        word-break: break-all;
+    }
+    .status-online {
+        color: #48bb78;
+        font-weight: bold;
+    }
+    .status-offline {
+        color: #f56565;
+        font-weight: bold;
+    }
+    .package-badge {
+        display: inline-block;
+        padding: 0.25rem 0.5rem;
+        margin: 0.25rem;
+        background: #edf2f7;
+        border-radius: 6px;
+        font-size: 0.875rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <h1 class="h2 mb-3">
+                <i class="bi bi-cpu"></i> System-Information
+            </h1>
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{{ url_for('admin.dashboard') }}">Dashboard</a></li>
+                    <li class="breadcrumb-item active">System</li>
+                </ol>
+            </nav>
+        </div>
+    </div>
+
+    <!-- System Overview -->
+    <div class="row">
+        <div class="col-md-6">
+            <div class="info-card">
+                <h5 class="mb-3">
+                    <i class="bi bi-server"></i> Server-Umgebung
+                </h5>
+                
+                <div class="mb-3">
+                    <div class="info-label">Hostname</div>
+                    <div class="info-value">{{ system_info.hostname }}</div>
+                </div>
+                
+                <div class="mb-3">
+                    <div class="info-label">Betriebssystem</div>
+                    <div class="info-value">{{ system_info.os }} - {{ system_info.platform }}</div>
+                </div>
+                
+                <div class="mb-3">
+                    <div class="info-label">Python Version</div>
+                    <div class="info-value">{{ system_info.python_version }}</div>
+                </div>
+                
+                <div class="mb-3">
+                    <div class="info-label">Python Pfad</div>
+                    <div class="info-value">{{ system_info.python_path }}</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6">
+            <div class="info-card">
+                <h5 class="mb-3">
+                    <i class="bi bi-hdd"></i> Hardware
+                </h5>
+                
+                <div class="mb-3">
+                    <div class="info-label">CPU</div>
+                    <div class="info-value">{{ system_info.cpu_name }} ({{ system_info.cpu_count }} Cores)</div>
+                </div>
+                
+                <div class="mb-3">
+                    <div class="info-label">RAM</div>
+                    <div class="info-value">{{ system_info.total_memory_gb }} GB</div>
+                </div>
+                
+                <div class="mb-3">
+                    <div class="info-label">Prozess ID</div>
+                    <div class="info-value">{{ system_info.process_id }}</div>
+                </div>
+                
+                <div class="mb-3">
+                    <div class="info-label">Start-Zeit</div>
+                    <div class="info-value">{{ system_info.start_time }}</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Services Status -->
+    <div class="row">
+        <div class="col-12">
+            <div class="info-card">
+                <h5 class="mb-3">
+                    <i class="bi bi-activity"></i> Service-Status
+                </h5>
+                
+                <div class="row">
+                    <div class="col-md-3">
+                        <div class="mb-3">
+                            <div class="info-label">FastAPI Backend</div>
+                            <div class="info-value">
+                                <span id="fastapi-status" class="status-offline">Prüfe...</span>
+                                <br><small>{{ system_info.api_url }}</small>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-3">
+                        <div class="mb-3">
+                            <div class="info-label">Flask Web-UI</div>
+                            <div class="info-value">
+                                <span class="status-online">Online</span>
+                                <br><small>{{ system_info.web_url }}</small>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-3">
+                        <div class="mb-3">
+                            <div class="info-label">PostgreSQL</div>
+                            <div class="info-value">
+                                <span id="postgres-status" class="{% if system_info.postgres_status == 'Verbunden' %}status-online{% else %}status-offline{% endif %}">
+                                    {{ system_info.postgres_status }}
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-3">
+                        <div class="mb-3">
+                            <div class="info-label">Redis Cache</div>
+                            <div class="info-value">
+                                <span id="redis-status" class="status-offline">Prüfe...</span>
+                                <br><small>{{ system_info.redis_url }}</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <button class="btn btn-primary" onclick="checkServices()">
+                    <i class="bi bi-arrow-clockwise"></i> Services prüfen
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Installed Packages -->
+    <div class="row">
+        <div class="col-12">
+            <div class="info-card">
+                <h5 class="mb-3">
+                    <i class="bi bi-box"></i> Installierte Packages
+                </h5>
+                
+                <div class="packages-list">
+                    {% for package, version in system_info.packages.items() %}
+                    <span class="package-badge">
+                        <i class="bi bi-package"></i> {{ package }} 
+                        <strong>{{ version }}</strong>
+                    </span>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Directories -->
+    <div class="row">
+        <div class="col-12">
+            <div class="info-card">
+                <h5 class="mb-3">
+                    <i class="bi bi-folder"></i> Verzeichnisse
+                </h5>
+                
+                <div class="row">
+                    <div class="col-md-4">
+                        <div class="mb-3">
+                            <div class="info-label">Arbeitsverzeichnis</div>
+                            <div class="info-value">{{ system_info.working_dir }}</div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-4">
+                        <div class="mb-3">
+                            <div class="info-label">Logs</div>
+                            <div class="info-value">{{ system_info.logs_dir }}</div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-4">
+                        <div class="mb-3">
+                            <div class="info-label">Scripts</div>
+                            <div class="info-value">{{ system_info.scripts_dir }}</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Live Metrics -->
+    <div class="row">
+        <div class="col-12">
+            <div class="info-card">
+                <h5 class="mb-3">
+                    <i class="bi bi-graph-up"></i> Live Metriken
+                </h5>
+                
+                <div id="live-metrics" class="row">
+                    <div class="col-md-4">
+                        <canvas id="cpuChart" height="150"></canvas>
+                    </div>
+                    <div class="col-md-4">
+                        <canvas id="memoryChart" height="150"></canvas>
+                    </div>
+                    <div class="col-md-4">
+                        <canvas id="diskChart" height="150"></canvas>
+                    </div>
+                </div>
+                
+                <div class="mt-3">
+                    <button class="btn btn-sm btn-outline-primary" onclick="toggleAutoRefresh()">
+                        <i class="bi bi-pause-circle" id="refresh-icon"></i> 
+                        <span id="refresh-text">Auto-Refresh pausieren</span>
+                    </button>
+                    <span class="ms-2 text-muted">Aktualisierung alle 5 Sekunden</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.js"></script>
+
+<script>
+let autoRefresh = true;
+let refreshInterval;
+
+// Service-Status prüfen
+function checkServices() {
+    // Redis prüfen
+    fetch('{{ url_for("admin.admin_system.redis_stats") }}')
+        .then(response => response.json())
+        .then(data => {
+            const statusEl = document.getElementById('redis-status');
+            if (data.connected) {
+                statusEl.className = 'status-online';
+                statusEl.textContent = 'Online';
+            } else {
+                statusEl.className = 'status-offline';
+                statusEl.textContent = 'Offline';
+            }
+        });
+
+    // PostgreSQL prüfen
+    fetch('{{ url_for("admin.admin_system.db_stats") }}')
+        .then(response => response.json())
+        .then(data => {
+            const statusEl = document.getElementById('postgres-status');
+            if (data.connected) {
+                statusEl.className = 'status-online';
+                statusEl.textContent = 'Verbunden';
+            } else {
+                statusEl.className = 'status-offline';
+                statusEl.textContent = 'Nicht verbunden';
+            }
+        });
+
+    // FastAPI prüfen
+    fetch('http://localhost:8000/health')
+        .then(response => response.json())
+        .then(data => {
+            const statusEl = document.getElementById('fastapi-status');
+            if (data.status === 'healthy') {
+                statusEl.className = 'status-online';
+                statusEl.textContent = 'Online';
+            } else {
+                statusEl.className = 'status-offline';
+                statusEl.textContent = 'Offline';
+            }
+        })
+        .catch(() => {
+            const statusEl = document.getElementById('fastapi-status');
+            statusEl.className = 'status-offline';
+            statusEl.textContent = 'Offline';
+        });
+}
+
+// Charts initialisieren
+const cpuChart = new Chart(document.getElementById('cpuChart'), {
+    type: 'line',
+    data: {
+        labels: [],
+        datasets: [{
+            label: 'CPU %',
+            data: [],
+            borderColor: 'rgb(75, 192, 192)',
+            tension: 0.1
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        scales: {
+            y: {
+                beginAtZero: true,
+                max: 100
+            }
+        }
+    }
+});
+
+const memoryChart = new Chart(document.getElementById('memoryChart'), {
+    type: 'line',
+    data: {
+        labels: [],
+        datasets: [{
+            label: 'Memory %',
+            data: [],
+            borderColor: 'rgb(255, 99, 132)',
+            tension: 0.1
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        scales: {
+            y: {
+                beginAtZero: true,
+                max: 100
+            }
+        }
+    }
+});
+
+const diskChart = new Chart(document.getElementById('diskChart'), {
+    type: 'line',
+    data: {
+        labels: [],
+        datasets: [{
+            label: 'Disk %',
+            data: [],
+            borderColor: 'rgb(255, 205, 86)',
+            tension: 0.1
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        scales: {
+            y: {
+                beginAtZero: true,
+                max: 100
+            }
+        }
+    }
+});
+
+// Live-Metriken aktualisieren
+function updateLiveMetrics() {
+    if (!autoRefresh) return;
+    
+    fetch('{{ url_for("admin.admin_system.system_status") }}')
+        .then(response => response.json())
+        .then(data => {
+            const now = new Date().toLocaleTimeString();
+            
+            // CPU Chart
+            cpuChart.data.labels.push(now);
+            cpuChart.data.datasets[0].data.push(data.cpu.percent);
+            if (cpuChart.data.labels.length > 20) {
+                cpuChart.data.labels.shift();
+                cpuChart.data.datasets[0].data.shift();
+            }
+            cpuChart.update();
+            
+            // Memory Chart
+            memoryChart.data.labels.push(now);
+            memoryChart.data.datasets[0].data.push(data.memory.percent);
+            if (memoryChart.data.labels.length > 20) {
+                memoryChart.data.labels.shift();
+                memoryChart.data.datasets[0].data.shift();
+            }
+            memoryChart.update();
+            
+            // Disk Chart
+            diskChart.data.labels.push(now);
+            diskChart.data.datasets[0].data.push(data.disk.percent);
+            if (diskChart.data.labels.length > 20) {
+                diskChart.data.labels.shift();
+                diskChart.data.datasets[0].data.shift();
+            }
+            diskChart.update();
+        });
+}
+
+function toggleAutoRefresh() {
+    autoRefresh = !autoRefresh;
+    const icon = document.getElementById('refresh-icon');
+    const text = document.getElementById('refresh-text');
+    
+    if (autoRefresh) {
+        icon.className = 'bi bi-pause-circle';
+        text.textContent = 'Auto-Refresh pausieren';
+    } else {
+        icon.className = 'bi bi-play-circle';
+        text.textContent = 'Auto-Refresh starten';
+    }
+}
+
+// Initial laden
+checkServices();
+updateLiveMetrics();
+
+// Auto-Refresh starten
+refreshInterval = setInterval(updateLiveMetrics, 5000);
+</script>
+{% endblock %}

@@ -1,0 +1,41 @@
+[flake8]
+# Black owns code formatting; flake8 guards correctness (all F-codes stay on).
+# CI lints `src` (the showcase surface). scripts/ and tests/ are not gated.
+#
+# Deliberately ignored, with rationale:
+#   E203,W503   black-compatibility (PEP 8 disagrees with black here)
+#   E501        line length is enforced by black (100), not flake8
+#   W291,W293   trailing/blank whitespace inside German docstrings & HTML
+#               email templates — not code; black does not touch string bodies
+#   F541        f-string without placeholder — harmless, legacy strings
+#   E402        module-level import after sys.path bootstrap (intentional
+#               pattern in entrypoints/scripts importing `src`)
+#   E712        `== True` comparisons in legacy SQLAlchemy filter expressions
+#   E722        bare `except:` — 31 legacy sites, tracked Alpha cleanup
+#               (see README § Project Status); correctness F-codes still catch
+#               real issues
+max-line-length = 100
+extend-ignore =
+    E203,
+    W503,
+    E501,
+    W291,
+    W293,
+    F541,
+    E402,
+    E712,
+    E722
+exclude =
+    .git,
+    .venv,
+    __pycache__,
+    docs.legacy,
+    archive,
+    htmlcov,
+    build,
+    dist,
+    .pytest_cache,
+    migrations
+per-file-ignores =
+    __init__.py:F401
+max-complexity = 30

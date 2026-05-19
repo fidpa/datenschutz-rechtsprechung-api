@@ -1,0 +1,46 @@
+# Multi-stage build für FastAPI
+FROM python:3.11-slim as base
+
+WORKDIR /app
+
+# System dependencies
+RUN apt-get update && apt-get install -y \
+    build-essential \
+    curl \
+    postgresql-client \
+    && rm -rf /var/lib/apt/lists/*
+
+# Python dependencies
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Development stage
+FROM base as development
+COPY . .
+CMD ["uvicorn", "src.api.main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
+
+# Production stage
+FROM base as production
+
+# Create non-root user
+RUN groupadd -r dsr && useradd -r -g dsr dsr
+
+# Copy application
+COPY --chown=dsr:dsr . .
+
+# Create necessary directories
+RUN mkdir -p /app/logs /app/uploads /app/temp && \
+    chown -R dsr:dsr /app/logs /app/uploads /app/temp
+
+# Install production dependencies only
+RUN pip install --no-cache-dir gunicorn uvicorn[standard]
+
+# Switch to non-root user
+USER dsr
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
+    CMD curl -f http://localhost:8000/system/health || exit 1
+
+# Production command
+CMD ["gunicorn", "src.api.main:app", "-w", "4", "-k", "uvicorn.workers.UvicornWorker", "--bind", "0.0.0.0:8000", "--access-logfile", "-", "--error-logfile", "-"]

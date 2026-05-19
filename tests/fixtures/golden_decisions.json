@@ -1,0 +1,166 @@
+[
+  {
+    "source": "gdprhub",
+    "source_id": "BGH_2023_VI_ZR_123_22",
+    "title": "BGH zu Schadenersatz nach Datenleck",
+    "case_number": "VI ZR 123/22",
+    "court": "BGH",
+    "decision_date": "2023-06-15",
+    "full_text_original": "Der Kläger Hans Müller aus Berlin begehrt von der Beklagten XYZ GmbH Schadenersatz wegen unrechtmäßiger Datenverarbeitung. Die in München ansässige Beklagte hatte personenbezogene Daten des Klägers ohne Rechtsgrundlage verarbeitet.",
+    "expected_anonymization": {
+      "Hans Müller": "[Person 1]",
+      "Berlin": "[Stadt 1]",
+      "XYZ GmbH": "[Unternehmen 1]",
+      "München": "[Stadt 2]"
+    },
+    "expected_gdpr_articles": ["Art. 82", "Art. 5", "Art. 6"],
+    "expected_keywords": ["Schadenersatz", "Datenleck", "Verschulden", "Rechtsgrundlage"],
+    "leitsatz": "Ein Verstoß gegen die DSGVO begründet einen Schadenersatzanspruch nach Art. 82 DSGVO auch bei immateriellen Schäden.",
+    "validation_notes": "Manuell validiert - Standardfall Schadenersatz"
+  },
+  {
+    "source": "gdprhub",
+    "source_id": "OLG_Frankfurt_2023_6_U_78_22",
+    "title": "OLG Frankfurt zu Auskunftsanspruch",
+    "case_number": "6 U 78/22",
+    "court": "OLG Frankfurt",
+    "decision_date": "2023-04-20",
+    "full_text_original": "Die Antragstellerin Erika Musterfrau verlangt von der Antragsgegnerin ABC AG Auskunft über die zu ihrer Person gespeicherten Daten. Die Antragsgegnerin mit Sitz in Frankfurt am Main verweigerte die vollständige Auskunft.",
+    "expected_anonymization": {
+      "Erika Musterfrau": "[Person 1]",
+      "ABC AG": "[Unternehmen 1]",
+      "Frankfurt am Main": "[Stadt 1]"
+    },
+    "expected_gdpr_articles": ["Art. 15", "Art. 12"],
+    "expected_keywords": ["Auskunftsanspruch", "Betroffenenrechte", "Transparenz"],
+    "leitsatz": "Der Auskunftsanspruch nach Art. 15 DSGVO umfasst alle personenbezogenen Daten einschließlich interner Vermerke.",
+    "validation_notes": "Manuell validiert - Auskunftsrecht"
+  },
+  {
+    "source": "gdprhub",
+    "source_id": "LG_Hamburg_2023_327_O_145_22",
+    "title": "LG Hamburg zu Löschungsanspruch",
+    "case_number": "327 O 145/22",
+    "court": "LG Hamburg",
+    "decision_date": "2023-03-10",
+    "full_text_original": "Der Kläger Peter Schmidt, wohnhaft in der Hauptstraße 42, 20095 Hamburg, verlangt Löschung seiner Daten aus dem System der DEF KG.",
+    "expected_anonymization": {
+      "Peter Schmidt": "[Person 1]",
+      "Hauptstraße 42": "[Adresse 1]",
+      "20095 Hamburg": "[PLZ Ort 1]",
+      "DEF KG": "[Unternehmen 1]"
+    },
+    "expected_gdpr_articles": ["Art. 17", "Art. 6"],
+    "expected_keywords": ["Löschung", "Recht auf Vergessenwerden", "Speicherdauer"],
+    "leitsatz": "Das Recht auf Löschung besteht, wenn die Daten für die Zwecke, für die sie erhoben wurden, nicht mehr notwendig sind.",
+    "validation_notes": "Manuell validiert - Löschungsrecht mit Adresse"
+  },
+  {
+    "source": "gdprhub",
+    "source_id": "VG_Berlin_2023_1_K_234_22",
+    "title": "VG Berlin zu behördlicher Datenverarbeitung",
+    "case_number": "1 K 234/22",
+    "court": "VG Berlin",
+    "decision_date": "2023-05-05",
+    "full_text_original": "Die Klägerin wendet sich gegen die Verarbeitung ihrer Gesundheitsdaten durch das Gesundheitsamt Mitte. Die Behörde hatte Daten zur COVID-19-Kontaktnachverfolgung länger als erforderlich gespeichert.",
+    "expected_anonymization": {},
+    "expected_gdpr_articles": ["Art. 9", "Art. 5", "Art. 89"],
+    "expected_keywords": ["Gesundheitsdaten", "Behörde", "Speicherdauer", "COVID-19"],
+    "leitsatz": "Gesundheitsdaten unterliegen besonderen Schutzanforderungen nach Art. 9 DSGVO.",
+    "validation_notes": "Manuell validiert - Besondere Kategorien, keine Namen"
+  },
+  {
+    "source": "gdprhub",
+    "source_id": "AG_München_2023_142_C_1234_22",
+    "title": "AG München zu Videoüberwachung",
+    "case_number": "142 C 1234/22",
+    "court": "AG München",
+    "decision_date": "2023-02-28",
+    "full_text_original": "Der Beklagte Max Meier hatte eine Überwachungskamera installiert, die auch Teile des Grundstücks der Klägerin Maria Huber erfasste. Frau Huber ist Geschäftsführerin der Huber GmbH & Co. KG.",
+    "expected_anonymization": {
+      "Max Meier": "[Person 1]",
+      "Maria Huber": "[Person 2]",
+      "Huber GmbH & Co. KG": "[Unternehmen 1]"
+    },
+    "expected_gdpr_articles": ["Art. 6", "Art. 5"],
+    "expected_keywords": ["Videoüberwachung", "Interessenabwägung", "Privatsphäre"],
+    "leitsatz": "Private Videoüberwachung, die fremde Grundstücke erfasst, ist grundsätzlich unzulässig.",
+    "validation_notes": "Manuell validiert - Videoüberwachung"
+  },
+  {
+    "source": "gdprhub",
+    "source_id": "OVG_NRW_2023_20_A_567_21",
+    "title": "OVG NRW zu Bußgeld wegen Datenpanne",
+    "case_number": "20 A 567/21",
+    "court": "OVG NRW",
+    "decision_date": "2023-07-12",
+    "full_text_original": "Die Antragstellerin GHI AG wendet sich gegen ein Bußgeld in Höhe von 250.000 Euro. Die Datenschutzbehörde hatte das Bußgeld wegen einer nicht gemeldeten Datenpanne verhängt.",
+    "expected_anonymization": {
+      "GHI AG": "[Unternehmen 1]"
+    },
+    "expected_gdpr_articles": ["Art. 33", "Art. 34", "Art. 83"],
+    "expected_keywords": ["Bußgeld", "Datenpanne", "Meldepflicht", "Sanktion"],
+    "leitsatz": "Die Meldepflicht nach Art. 33 DSGVO besteht unabhängig vom Verschulden.",
+    "validation_notes": "Manuell validiert - Bußgeldverfahren"
+  },
+  {
+    "source": "gdprhub",
+    "source_id": "LAG_Berlin_2023_10_Sa_890_22",
+    "title": "LAG Berlin-Brandenburg zu Beschäftigtendatenschutz",
+    "case_number": "10 Sa 890/22",
+    "court": "LAG Berlin-Brandenburg",
+    "decision_date": "2023-08-20",
+    "full_text_original": "Der Kläger war als Softwareentwickler bei der JKL Technologies GmbH beschäftigt. Der Arbeitgeber hatte E-Mails des Klägers ohne dessen Kenntnis überwacht.",
+    "expected_anonymization": {
+      "JKL Technologies GmbH": "[Unternehmen 1]"
+    },
+    "expected_gdpr_articles": ["Art. 88", "Art. 6", "Art. 5"],
+    "expected_keywords": ["Beschäftigtendatenschutz", "E-Mail-Überwachung", "Arbeitsverhältnis"],
+    "leitsatz": "Die Überwachung dienstlicher E-Mails bedarf einer Rechtsgrundlage und der Verhältnismäßigkeit.",
+    "validation_notes": "Manuell validiert - Arbeitsrecht/DSGVO"
+  },
+  {
+    "source": "gdprhub",
+    "source_id": "EuGH_2023_C_123_21",
+    "title": "EuGH zu grenzüberschreitender Datenübermittlung",
+    "case_number": "C-123/21",
+    "court": "EuGH",
+    "decision_date": "2023-09-14",
+    "full_text_original": "Die Kommission gegen Deutschland betreffend die Auslegung von Art. 46 DSGVO zur Datenübermittlung in Drittländer.",
+    "expected_anonymization": {},
+    "expected_gdpr_articles": ["Art. 44", "Art. 45", "Art. 46", "Art. 49"],
+    "expected_keywords": ["Drittland", "Angemessenheitsbeschluss", "Standardvertragsklauseln", "Transfer"],
+    "leitsatz": "Datenübermittlungen in Drittländer erfordern geeignete Garantien nach Kapitel V DSGVO.",
+    "validation_notes": "Manuell validiert - EU-Ebene, keine personenbezogenen Daten"
+  },
+  {
+    "source": "gdprhub",
+    "source_id": "BVerwG_2023_1_C_12_22",
+    "title": "BVerwG zu Informationsfreiheit und Datenschutz",
+    "case_number": "1 C 12.22",
+    "court": "BVerwG",
+    "decision_date": "2023-10-30",
+    "full_text_original": "Revision gegen das Urteil des OVG Berlin-Brandenburg zur Abwägung zwischen Informationsfreiheit und Datenschutz.",
+    "expected_anonymization": {},
+    "expected_gdpr_articles": ["Art. 86", "Art. 6"],
+    "expected_keywords": ["Informationsfreiheit", "Transparenz", "Abwägung", "Öffentliches Interesse"],
+    "leitsatz": "Bei der Abwägung zwischen Informationsfreiheit und Datenschutz ist das öffentliche Interesse zu berücksichtigen.",
+    "validation_notes": "Manuell validiert - Höchstrichterlich, IFG/DSGVO"
+  },
+  {
+    "source": "gdprhub",
+    "source_id": "LSG_Bayern_2023_L_4_KR_234_21",
+    "title": "LSG Bayern zu Sozialdaten",
+    "case_number": "L 4 KR 234/21",
+    "court": "LSG Bayern",
+    "decision_date": "2023-11-15",
+    "full_text_original": "Die Klägerin begehrt von der AOK Bayern Löschung unrichtiger Gesundheitsdaten. Die Krankenkasse hatte fehlerhafte Diagnosen gespeichert.",
+    "expected_anonymization": {
+      "AOK Bayern": "[Krankenkasse 1]"
+    },
+    "expected_gdpr_articles": ["Art. 16", "Art. 17", "Art. 9"],
+    "expected_keywords": ["Sozialdaten", "Gesundheitsdaten", "Berichtigung", "Krankenkasse"],
+    "leitsatz": "Sozialdaten unterliegen sowohl dem SGB als auch der DSGVO.",
+    "validation_notes": "Manuell validiert - Sozialrecht/DSGVO Schnittstelle"
+  }
+]

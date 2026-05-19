@@ -1,0 +1,83 @@
+{% extends "base.html" %}
+
+{% block title %}DSGVO-Crawler - Gerichtsentscheidungen durchsuchen{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-lg-8 mx-auto">
+        <!-- Hero Section -->
+        <div class="text-center mb-5">
+            <h1 class="display-4 mb-3">
+                <i class="bi bi-shield-check text-primary"></i>
+                DSGVO-Crawler
+            </h1>
+            <p class="lead text-muted">
+                Durchsuchen Sie Gerichtsentscheidungen zum Datenschutz aus dem DACH-Raum
+            </p>
+        </div>
+        
+        <!-- Such-Box -->
+        <form method="GET" action="{{ url_for('public.search') }}" class="mb-5">
+            <div class="row g-3">
+                <div class="col-md-10">
+                    <input type="text" 
+                           name="q" 
+                           class="form-control form-control-lg" 
+                           placeholder="Suchbegriff eingeben... (z.B. 'Art. 6 DSGVO', 'Schadensersatz')"
+                           autofocus>
+                </div>
+                <div class="col-md-2">
+                    <button type="submit" class="btn btn-primary btn-lg w-100">
+                        <i class="bi bi-search"></i>
+                        <span class="d-none d-md-inline">Suchen</span>
+                    </button>
+                </div>
+            </div>
+        </form>
+        
+        <!-- Statistiken -->
+        <div class="row g-4 mb-5">
+            <div class="col-md-4">
+                <div class="card text-center h-100">
+                    <div class="card-body">
+                        <i class="bi bi-file-text fs-1 text-primary mb-3"></i>
+                        <h3 class="card-title">{{ "{:,}".format(total_decisions).replace(',', '.') }}</h3>
+                        <p class="card-text text-muted">Entscheidungen</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card text-center h-100">
+                    <div class="card-body">
+                        <i class="bi bi-building fs-1 text-success mb-3"></i>
+                        <h3 class="card-title">{{ total_courts }}</h3>
+                        <p class="card-text text-muted">Gerichte</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card text-center h-100">
+                    <div class="card-body">
+                        <i class="bi bi-database fs-1 text-info mb-3"></i>
+                        <h3 class="card-title">{{ total_sources }}</h3>
+                        <p class="card-text text-muted">Datenquellen</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Beliebte Suchbegriffe -->
+        <div class="text-center">
+            <h5 class="mb-3">Häufige Suchbegriffe:</h5>
+            <div class="d-flex flex-wrap justify-content-center gap-2">
+                <a href="{{ url_for('public.search', q='Art. 6') }}" class="btn btn-outline-secondary btn-sm">Art. 6 DSGVO</a>
+                <a href="{{ url_for('public.search', q='Art. 15') }}" class="btn btn-outline-secondary btn-sm">Art. 15 DSGVO</a>
+                <a href="{{ url_for('public.search', q='Art. 17') }}" class="btn btn-outline-secondary btn-sm">Art. 17 DSGVO</a>
+                <a href="{{ url_for('public.search', q='Schadensersatz') }}" class="btn btn-outline-secondary btn-sm">Schadensersatz</a>
+                <a href="{{ url_for('public.search', q='Auskunft') }}" class="btn btn-outline-secondary btn-sm">Auskunft</a>
+                <a href="{{ url_for('public.search', q='Löschung') }}" class="btn btn-outline-secondary btn-sm">Löschung</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,144 @@
+version: '3.8'
+
+services:
+  # Test PostgreSQL Database
+  test-postgres:
+    image: postgres:15-alpine
+    container_name: dsr_test_db
+    environment:
+      POSTGRES_DB: dsr_test
+      POSTGRES_USER: dsr_test_user
+      POSTGRES_PASSWORD: dsr_test_password
+      # Optimierungen für Tests (schneller, weniger persistent)
+      POSTGRES_INITDB_ARGS: "--encoding=UTF8 --locale=de_DE.UTF-8"
+      POSTGRES_HOST_AUTH_METHOD: "md5"
+    command:
+      - "postgres"
+      - "-c"
+      - "shared_buffers=256MB"
+      - "-c"
+      - "max_connections=200"
+      - "-c"
+      - "work_mem=8MB"
+      - "-c"
+      - "maintenance_work_mem=64MB"
+      - "-c"
+      - "fsync=off"  # Schneller für Tests (NICHT für Production!)
+      - "-c"
+      - "synchronous_commit=off"  # Schneller für Tests
+      - "-c"
+      - "full_page_writes=off"  # Schneller für Tests
+      - "-c"
+      - "checkpoint_segments=32"
+      - "-c"
+      - "checkpoint_completion_target=0.9"
+      - "-c"
+      - "wal_buffers=16MB"
+    ports:
+      - "5433:5432"  # Anderer Port um Konflikte zu vermeiden
+    volumes:
+      - test_postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U dsr_test_user -d dsr_test"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    networks:
+      - test_network
+
+  # Test Redis für Caching
+  test-redis:
+    image: redis:7-alpine
+    container_name: dsr_test_redis
+    command: redis-server --maxmemory 256mb --maxmemory-policy allkeys-lru
+    ports:
+      - "6380:6379"  # Anderer Port
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+    networks:
+      - test_network
+
+  # Test Runner Container
+  test-runner:
+    build:
+      context: .
+      dockerfile: Dockerfile.test
+    container_name: dsr_test_runner
+    environment:
+      # Test Database
+      TEST_DATABASE_URL: "postgresql://dsr_test_user:dsr_test_password@test-postgres:5432/dsr_test"
+      DATABASE_URL: "postgresql://dsr_test_user:dsr_test_password@test-postgres:5432/dsr_test"
+      
+      # Test Redis
+      REDIS_URL: "redis://test-redis:6379/0"
+      
+      # Test Settings
+      ENVIRONMENT: "test"
+      LOG_LEVEL: "DEBUG"
+      PYTHONPATH: "/app"
+      
+      # Performance Settings für Tests
+      BATCH_SIZE: "100"
+      MAX_WORKERS: "4"
+      
+    volumes:
+      - .:/app
+      - ./reports:/app/reports
+      - ./data/cache:/app/data/cache
+    depends_on:
+      test-postgres:
+        condition: service_healthy
+      test-redis:
+        condition: service_healthy
+    command: >
+      sh -c "
+        echo 'Waiting for services...' &&
+        sleep 5 &&
+        echo 'Initializing test database...' &&
+        python scripts/init_db.py &&
+        echo 'Running tests...' &&
+        pytest tests/integration/test_real_import.py -v --tb=short &&
+        echo 'Running quality validation...' &&
+        python scripts/validate_import_quality.py --count 100
+      "
+    networks:
+      - test_network
+
+  # Performance Monitor (optional)
+  test-monitor:
+    image: prom/node-exporter:latest
+    container_name: dsr_test_monitor
+    ports:
+      - "9100:9100"
+    networks:
+      - test_network
+    profiles:
+      - monitoring
+
+  # Grafana für Visualisierung (optional)
+  test-grafana:
+    image: grafana/grafana:latest
+    container_name: dsr_test_grafana
+    environment:
+      GF_SECURITY_ADMIN_PASSWORD: admin
+      GF_INSTALL_PLUGINS: "redis-datasource"
+    ports:
+      - "3001:3000"
+    volumes:
+      - ./docker/grafana/dashboards:/etc/grafana/provisioning/dashboards
+      - ./docker/grafana/datasources:/etc/grafana/provisioning/datasources
+    networks:
+      - test_network
+    profiles:
+      - monitoring
+
+networks:
+  test_network:
+    driver: bridge
+
+volumes:
+  test_postgres_data:
+    driver: local

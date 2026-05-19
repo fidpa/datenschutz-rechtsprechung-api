@@ -1,0 +1,323 @@
+/* Datenschutz-Rechtsprechung API Dark Mode CSS */
+
+/* ============================================
+   Dark Mode CSS Variables
+   ============================================ */
+[data-theme="dark"] {
+    /* Background Colors */
+    --gdpr-bg-primary: #1a202c;
+    --gdpr-bg-secondary: #2d3748;
+    --gdpr-bg-tertiary: #374151;
+    --gdpr-bg-card: #2d3748;
+    
+    /* Border Colors */
+    --gdpr-border-primary: #4a5568;
+    --gdpr-border-secondary: #718096;
+    --gdpr-border-light: #374151;
+    
+    /* Text Colors */
+    --gdpr-text-primary: #e2e8f0;
+    --gdpr-text-secondary: #a0aec0;
+    --gdpr-text-muted: #718096;
+    --gdpr-text-accent: #81e6d9;
+    
+    /* Shadow Colors */
+    --gdpr-shadow-sm: 0 1px 3px rgba(0,0,0,0.3);
+    --gdpr-shadow-md: 0 2px 4px rgba(0,0,0,0.3);
+    --gdpr-shadow-lg: 0 10px 25px rgba(0,0,0,0.4);
+    
+    /* Chart Colors for Dark Mode */
+    --gdpr-chart-purple: rgba(102, 126, 234, 0.9);
+    --gdpr-chart-green: rgba(86, 171, 47, 0.9);
+    --gdpr-chart-blue: rgba(33, 147, 176, 0.9);
+    --gdpr-chart-orange: rgba(242, 153, 74, 0.9);
+    --gdpr-chart-red: rgba(237, 85, 101, 0.9);
+}
+
+/* ============================================
+   Base Body & Background
+   ============================================ */
+[data-theme="dark"] body {
+    background-color: var(--gdpr-bg-primary) !important;
+    color: var(--gdpr-text-primary) !important;
+}
+
+[data-theme="dark"] .container-fluid {
+    background-color: var(--gdpr-bg-primary);
+}
+
+/* ============================================
+   Navbar Dark Mode
+   ============================================ */
+[data-theme="dark"] .navbar {
+    background-color: var(--gdpr-bg-secondary) !important;
+    border-bottom: 1px solid var(--gdpr-border-primary);
+}
+
+[data-theme="dark"] .navbar-brand,
+[data-theme="dark"] .navbar-nav .nav-link {
+    color: var(--gdpr-text-primary) !important;
+}
+
+[data-theme="dark"] .navbar-nav .nav-link:hover,
+[data-theme="dark"] .navbar-nav .nav-link.active {
+    color: var(--gdpr-text-accent) !important;
+}
+
+[data-theme="dark"] .navbar-toggler {
+    border-color: var(--gdpr-border-primary);
+    color: var(--gdpr-text-primary);
+}
+
+/* ============================================
+   Admin Dashboard Components
+   ============================================ */
+
+/* Metric Cards */
+[data-theme="dark"] .metric-card {
+    background: linear-gradient(135deg, #4a5568 0%, #2d3748 100%) !important;
+    border: 1px solid var(--gdpr-border-primary);
+    box-shadow: var(--gdpr-shadow-md);
+}
+
+[data-theme="dark"] .metric-card.green {
+    background: linear-gradient(135deg, #38a169 0%, #2f855a 100%) !important;
+}
+
+[data-theme="dark"] .metric-card.blue {
+    background: linear-gradient(135deg, #3182ce 0%, #2c5282 100%) !important;
+}
+
+[data-theme="dark"] .metric-card.orange {
+    background: linear-gradient(135deg, #dd6b20 0%, #c05621 100%) !important;
+}
+
+/* Chart Containers */
+[data-theme="dark"] .chart-container {
+    background-color: var(--gdpr-bg-card) !important;
+    border: 1px solid var(--gdpr-border-primary);
+    box-shadow: var(--gdpr-shadow-md);
+    color: var(--gdpr-text-primary);
+}
+
+[data-theme="dark"] .chart-container h5 {
+    color: var(--gdpr-text-primary);
+}
+
+/* System Metrics */
+[data-theme="dark"] .system-metric {
+    background-color: var(--gdpr-bg-tertiary) !important;
+    border: 1px solid var(--gdpr-border-light);
+    color: var(--gdpr-text-primary);
+}
+
+/* Activity Items */
+[data-theme="dark"] .activity-item {
+    background-color: var(--gdpr-bg-tertiary) !important;
+    border-left-color: var(--gdpr-chart-purple);
+    color: var(--gdpr-text-primary);
+}
+
+/* CLI Command Styling */
+[data-theme="dark"] .cli-command {
+    background-color: #1a1a1a !important;
+    color: #48bb78;
+    border: 1px solid var(--gdpr-border-primary);
+}
+
+/* ============================================
+   Bootstrap Component Overrides
+   ============================================ */
+
+/* Cards */
+[data-theme="dark"] .card {
+    background-color: var(--gdpr-bg-card) !important;
+    border-color: var(--gdpr-border-primary) !important;
+    color: var(--gdpr-text-primary);
+}
+
+[data-theme="dark"] .card-header {
+    background-color: var(--gdpr-bg-tertiary) !important;
+    border-bottom-color: var(--gdpr-border-primary) !important;
+}
+
+/* Buttons */
+[data-theme="dark"] .btn-outline-primary {
+    color: #81e6d9;
+    border-color: #81e6d9;
+}
+
+[data-theme="dark"] .btn-outline-primary:hover {
+    background-color: #81e6d9;
+    color: var(--gdpr-bg-primary);
+}
+
+[data-theme="dark"] .btn-outline-secondary {
+    color: var(--gdpr-text-secondary);
+    border-color: var(--gdpr-border-secondary);
+}
+
+[data-theme="dark"] .btn-outline-secondary:hover {
+    background-color: var(--gdpr-text-secondary);
+    color: var(--gdpr-bg-primary);
+}
+
+[data-theme="dark"] .btn-outline-info {
+    color: var(--gdpr-chart-blue);
+    border-color: var(--gdpr-chart-blue);
+}
+
+/* Alerts */
+[data-theme="dark"] .alert {
+    border-color: var(--gdpr-border-primary);
+}
+
+[data-theme="dark"] .alert-warning {
+    background-color: rgba(242, 153, 74, 0.1);
+    border-color: rgba(242, 153, 74, 0.3);
+    color: #f6ad55;
+}
+
+[data-theme="dark"] .alert-info {
+    background-color: rgba(33, 147, 176, 0.1);
+    border-color: rgba(33, 147, 176, 0.3);
+    color: #63b3ed;
+}
+
+[data-theme="dark"] .alert-success {
+    background-color: rgba(86, 171, 47, 0.1);
+    border-color: rgba(86, 171, 47, 0.3);
+    color: #9ae6b4;
+}
+
+[data-theme="dark"] .alert-danger {
+    background-color: rgba(237, 85, 101, 0.1);
+    border-color: rgba(237, 85, 101, 0.3);
+    color: #fc8181;
+}
+
+/* Modal */
+[data-theme="dark"] .modal-content {
+    background-color: var(--gdpr-bg-card);
+    border-color: var(--gdpr-border-primary);
+}
+
+[data-theme="dark"] .modal-header {
+    border-bottom-color: var(--gdpr-border-primary);
+}
+
+[data-theme="dark"] .modal-footer {
+    border-top-color: var(--gdpr-border-primary);
+}
+
+[data-theme="dark"] .modal-title {
+    color: var(--gdpr-text-primary);
+}
+
+/* Badges */
+[data-theme="dark"] .badge.bg-primary {
+    background-color: var(--gdpr-chart-purple) !important;
+}
+
+[data-theme="dark"] .badge.bg-info {
+    background-color: var(--gdpr-chart-blue) !important;
+}
+
+[data-theme="dark"] .badge.bg-warning {
+    background-color: var(--gdpr-chart-orange) !important;
+    color: var(--gdpr-bg-primary) !important;
+}
+
+/* Progress Bars */
+[data-theme="dark"] .progress {
+    background-color: var(--gdpr-bg-tertiary);
+}
+
+/* Text Utilities */
+[data-theme="dark"] .text-muted {
+    color: var(--gdpr-text-muted) !important;
+}
+
+[data-theme="dark"] h1, [data-theme="dark"] h2, [data-theme="dark"] h3, 
+[data-theme="dark"] h4, [data-theme="dark"] h5, [data-theme="dark"] h6 {
+    color: var(--gdpr-text-primary);
+}
+
+/* Small text */
+[data-theme="dark"] small {
+    color: var(--gdpr-text-secondary);
+}
+
+/* ============================================
+   Theme Toggle Button
+   ============================================ */
+#themeToggle {
+    background: none;
+    border: none;
+    color: inherit;
+    font-size: 1.2rem;
+    padding: 0.375rem 0.75rem;
+    border-radius: 0.375rem;
+    transition: all 0.2s ease;
+}
+
+#themeToggle:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+}
+
+[data-theme="dark"] #themeToggle:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+}
+
+/* ============================================
+   Scrollbar Styling
+   ============================================ */
+[data-theme="dark"] ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+[data-theme="dark"] ::-webkit-scrollbar-track {
+    background-color: var(--gdpr-bg-primary);
+}
+
+[data-theme="dark"] ::-webkit-scrollbar-thumb {
+    background-color: var(--gdpr-border-primary);
+    border-radius: 4px;
+}
+
+[data-theme="dark"] ::-webkit-scrollbar-thumb:hover {
+    background-color: var(--gdpr-border-secondary);
+}
+
+/* ============================================
+   Chart.js Dark Mode Support
+   ============================================ */
+[data-theme="dark"] canvas {
+    filter: brightness(0.95);
+}
+
+/* ============================================
+   Toast Notifications
+   ============================================ */
+[data-theme="dark"] .toast {
+    background-color: var(--gdpr-bg-card);
+    border: 1px solid var(--gdpr-border-primary);
+    color: var(--gdpr-text-primary);
+}
+
+[data-theme="dark"] .toast-body {
+    color: var(--gdpr-text-primary);
+}
+
+/* ============================================
+   Animation Support
+   ============================================ */
+* {
+    transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+}
+
+/* Don't animate chart canvas or progress bars */
+canvas, .progress-bar {
+    transition: none !important;
+}

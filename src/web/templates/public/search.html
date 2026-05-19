@@ -1,0 +1,227 @@
+{% extends "base.html" %}
+
+{% block title %}
+{% if query %}Suche: {{ query }} - DSGVO-Crawler{% else %}Suche - DSGVO-Crawler{% endif %}
+{% endblock %}
+
+{% block content %}
+<div class="row">
+    <!-- Hauptbereich -->
+    <div class="col-lg-12">
+        <!-- Such-Header -->
+        <div class="mb-4">
+            <h2>Entscheidungen durchsuchen</h2>
+            
+            <!-- Such-Formular -->
+            <form method="GET" action="{{ url_for('public.search') }}" class="mt-3">
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <input type="text" 
+                               name="q" 
+                               class="form-control" 
+                               placeholder="Suchbegriff..."
+                               value="{{ query }}"
+                               autofocus>
+                    </div>
+                    <div class="col-md-2">
+                        <select name="court" class="form-select">
+                            <option value="">Alle Gerichte</option>
+                            <option value="BGH" {{ 'selected' if court == 'BGH' }}>BGH</option>
+                            <option value="OLG" {{ 'selected' if court == 'OLG' }}>OLG</option>
+                            <option value="LG" {{ 'selected' if court == 'LG' }}>LG</option>
+                            <option value="AG" {{ 'selected' if court == 'AG' }}>AG</option>
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <select name="source" class="form-select">
+                            <option value="">Alle Quellen</option>
+                            <option value="gdprhub" {{ 'selected' if source == 'gdprhub' }}>GDPRhub</option>
+                            <option value="openlegaldata" {{ 'selected' if source == 'openlegaldata' }}>OpenLegalData</option>
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <button type="submit" class="btn btn-primary w-100">
+                            <i class="bi bi-search"></i> Suchen
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+        
+        <!-- Ergebnisse -->
+        {% if results %}
+            <!-- Ergebnis-Statistik -->
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <div>
+                    {% if query %}
+                    <p class="text-muted mb-0">
+                        <strong>{{ "{:,}".format(results.get('total', 0)).replace(',', '.') }}</strong> Ergebnisse 
+                        für "<strong>{{ query }}</strong>"
+                    </p>
+                    {% else %}
+                    <p class="text-muted mb-0">
+                        <strong>{{ "{:,}".format(results.get('total', 0)).replace(',', '.') }}</strong> Ergebnisse
+                    </p>
+                    {% endif %}
+                </div>
+                
+                <!-- Export-Button -->
+                <div>
+                    <a href="{{ url_for('export.export_excel', **request.args) }}" 
+                       class="btn btn-success">
+                        <i class="bi bi-file-earmark-excel"></i> Excel-Export
+                        {% if results.get('total', 0) > 1000 %}
+                        <small>(max. 1000)</small>
+                        {% endif %}
+                    </a>
+                </div>
+            </div>
+            
+            <!-- Ergebnis-Liste -->
+            {% if results and results.get('items') %}
+            <div class="row g-3">
+                {% for decision in results.get('items', []) %}
+                <div class="col-12">
+                    <div class="card">
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-10">
+                                    <h5 class="card-title">
+                                        <a href="{{ url_for('public.decision_detail', decision_id=decision.id) }}" 
+                                           class="text-decoration-none">
+                                            {{ decision.title or 'Ohne Titel' }}
+                                        </a>
+                                    </h5>
+                                    
+                                    <div class="mb-2">
+                                        <span class="badge bg-secondary me-2">{{ decision.court or 'Unbekanntes Gericht' }}</span>
+                                        {% if decision.decision_date %}
+                                        <span class="text-muted me-2">
+                                            <i class="bi bi-calendar3"></i> {{ decision.decision_date }}
+                                        </span>
+                                        {% endif %}
+                                        <span class="text-muted">
+                                            <i class="bi bi-database"></i> {{ decision.source or 'Unbekannte Quelle' }}
+                                        </span>
+                                    </div>
+                                    
+                                    {% if decision.gdpr_articles %}
+                                    <div class="mb-2">
+                                        {% for article in decision.gdpr_articles[:5] %}
+                                        <span class="badge bg-info text-dark me-1">{{ article }}</span>
+                                        {% endfor %}
+                                        {% if decision.gdpr_articles|length > 5 %}
+                                        <span class="text-muted">+{{ decision.gdpr_articles|length - 5 }} weitere</span>
+                                        {% endif %}
+                                    </div>
+                                    {% endif %}
+                                    
+                                    {% if decision.summary %}
+                                    <p class="card-text text-muted small">
+                                        {{ decision.summary[:200] }}{% if decision.summary|length > 200 %}...{% endif %}
+                                    </p>
+                                    {% endif %}
+                                </div>
+                                
+                                <div class="col-md-2 text-end">
+                                    {% if decision.case_number %}
+                                    <div class="text-muted small mb-2">
+                                        Az: {{ decision.case_number }}
+                                    </div>
+                                    {% endif %}
+                                    
+                                    <a href="{{ url_for('public.decision_detail', decision_id=decision.id) }}" 
+                                       class="btn btn-sm btn-outline-primary">
+                                        <i class="bi bi-eye"></i> Details
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            
+            <!-- Pagination -->
+            {% if results and results.get('pages', 0) > 1 %}
+            <nav aria-label="Suchergebnisse" class="mt-4">
+                <ul class="pagination justify-content-center">
+                    <!-- Vorherige Seite -->
+                    {% if current_page > 1 %}
+                    <li class="page-item">
+                        <a class="page-link" href="{{ url_for('public.search', page=current_page-1, q=query, court=court, source=source) }}">
+                            <i class="bi bi-chevron-left"></i>
+                        </a>
+                    </li>
+                    {% else %}
+                    <li class="page-item disabled">
+                        <span class="page-link"><i class="bi bi-chevron-left"></i></span>
+                    </li>
+                    {% endif %}
+                    
+                    <!-- Seitenzahlen (vereinfacht) -->
+                    {% set start = [1, current_page - 2]|max %}
+                    {% set end = [results.get('pages', 1), current_page + 2]|min %}
+                    
+                    {% if start > 1 %}
+                    <li class="page-item">
+                        <a class="page-link" href="{{ url_for('public.search', page=1, q=query, court=court, source=source) }}">1</a>
+                    </li>
+                    {% if start > 2 %}
+                    <li class="page-item disabled"><span class="page-link">...</span></li>
+                    {% endif %}
+                    {% endif %}
+                    
+                    {% for page_num in range(start, end + 1) %}
+                    <li class="page-item {{ 'active' if page_num == current_page }}">
+                        <a class="page-link" href="{{ url_for('public.search', page=page_num, q=query, court=court, source=source) }}">
+                            {{ page_num }}
+                        </a>
+                    </li>
+                    {% endfor %}
+                    
+                    {% if end < results.get('pages', 1) %}
+                    {% if end < results.get('pages', 1) - 1 %}
+                    <li class="page-item disabled"><span class="page-link">...</span></li>
+                    {% endif %}
+                    <li class="page-item">
+                        <a class="page-link" href="{{ url_for('public.search', page=results.get('pages', 1), q=query, court=court, source=source) }}">{{ results.get('pages', 1) }}</a>
+                    </li>
+                    {% endif %}
+                    
+                    <!-- Nächste Seite -->
+                    {% if current_page < results.get('pages', 1) %}
+                    <li class="page-item">
+                        <a class="page-link" href="{{ url_for('public.search', page=current_page+1, q=query, court=court, source=source) }}">
+                            <i class="bi bi-chevron-right"></i>
+                        </a>
+                    </li>
+                    {% else %}
+                    <li class="page-item disabled">
+                        <span class="page-link"><i class="bi bi-chevron-right"></i></span>
+                    </li>
+                    {% endif %}
+                </ul>
+            </nav>
+            {% endif %}
+            
+            {% else %}
+            <!-- Keine Ergebnisse -->
+            <div class="text-center py-5">
+                <i class="bi bi-search display-1 text-muted mb-3"></i>
+                <h3>Keine Ergebnisse gefunden</h3>
+                <p class="text-muted">Versuchen Sie es mit anderen Suchbegriffen oder Filtern.</p>
+            </div>
+            {% endif %}
+            
+        {% else %}
+            <!-- Noch keine Suche durchgeführt -->
+            <div class="text-center py-5">
+                <i class="bi bi-search display-1 text-muted mb-3"></i>
+                <h3>Bereit zur Suche</h3>
+                <p class="text-muted">Geben Sie einen Suchbegriff ein oder wählen Sie Filter aus.</p>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

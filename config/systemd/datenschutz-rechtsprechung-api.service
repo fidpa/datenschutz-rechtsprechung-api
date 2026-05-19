@@ -1,0 +1,35 @@
+[Unit]
+Description=Datenschutz-Rechtsprechung API Web Application
+Requires=docker.service
+After=docker.service
+Wants=datenschutz-rechtsprechung-api-backup.timer
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+WorkingDirectory=/opt/datenschutz-rechtsprechung-api
+ExecStart=/usr/local/bin/docker-compose -f docker-compose.production.yml up -d
+ExecStop=/usr/local/bin/docker-compose -f docker-compose.production.yml down
+ExecReload=/usr/local/bin/docker-compose -f docker-compose.production.yml restart
+TimeoutStartSec=300
+TimeoutStopSec=120
+User=dsr
+Group=dsr
+
+# Environment
+Environment=COMPOSE_HTTP_TIMEOUT=300
+EnvironmentFile=/opt/datenschutz-rechtsprechung-api/.env
+
+# Security
+NoNewPrivileges=yes
+PrivateTmp=yes
+ProtectHome=yes
+ProtectSystem=strict
+ReadWritePaths=/opt/datenschutz-rechtsprechung-api /var/log/datenschutz-rechtsprechung-api /backups
+
+# Restart policy
+Restart=on-failure
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target

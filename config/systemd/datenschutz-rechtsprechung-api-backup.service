@@ -1,0 +1,18 @@
+[Unit]
+Description=Datenschutz-Rechtsprechung API Database Backup
+After=datenschutz-rechtsprechung-api.service
+Requires=datenschutz-rechtsprechung-api.service
+
+[Service]
+Type=oneshot
+User=dsr
+Group=dsr
+WorkingDirectory=/opt/datenschutz-rechtsprechung-api
+ExecStart=/opt/datenschutz-rechtsprechung-api/scripts/backup-system.sh
+PrivateTmp=yes
+ProtectHome=yes
+ProtectSystem=strict
+ReadWritePaths=/opt/datenschutz-rechtsprechung-api /backups /var/log/datenschutz-rechtsprechung-api
+
+# Email notification on failure
+ExecStartPost=-/bin/bash -c 'if [ $EXIT_STATUS != 0 ]; then echo "Datenschutz-Rechtsprechung API backup failed" | mail -s "Backup Failure" ${BACKUP_EMAIL}; fi'

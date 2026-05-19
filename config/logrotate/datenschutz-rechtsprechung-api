@@ -1,0 +1,39 @@
+# Log rotation configuration für Datenschutz-Rechtsprechung API
+/var/log/datenschutz-rechtsprechung-api/*.log {
+    daily
+    rotate 30
+    compress
+    delaycompress
+    missingok
+    notifempty
+    create 644 dsr dsr
+    postrotate
+        /usr/bin/docker-compose -f /opt/datenschutz-rechtsprechung-api/docker-compose.production.yml exec nginx nginx -s reload > /dev/null 2>&1 || true
+        /usr/bin/docker-compose -f /opt/datenschutz-rechtsprechung-api/docker-compose.production.yml restart api > /dev/null 2>&1 || true
+        /usr/bin/docker-compose -f /opt/datenschutz-rechtsprechung-api/docker-compose.production.yml restart web > /dev/null 2>&1 || true
+    endscript
+}
+
+/var/log/datenschutz-rechtsprechung-api/nginx/*.log {
+    daily
+    rotate 30
+    compress
+    delaycompress
+    missingok
+    notifempty
+    create 644 nginx nginx
+    postrotate
+        /usr/bin/docker-compose -f /opt/datenschutz-rechtsprechung-api/docker-compose.production.yml exec nginx nginx -s reload > /dev/null 2>&1 || true
+    endscript
+}
+
+# Application logs
+/opt/datenschutz-rechtsprechung-api/logs/*.log {
+    daily
+    rotate 60
+    compress
+    delaycompress
+    missingok
+    notifempty
+    copytruncate
+}

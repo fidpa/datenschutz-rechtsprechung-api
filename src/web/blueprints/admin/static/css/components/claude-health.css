@@ -1,0 +1,334 @@
+/* Claude Health Widget Styles */
+
+.health-score-display {
+    text-align: center;
+    padding: 1rem 0;
+}
+
+.health-score {
+    font-size: 3rem;
+    font-weight: bold;
+    margin-bottom: 0.5rem;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background-clip: text;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    text-align: center;
+}
+
+.health-status {
+    font-size: 0.9rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.health-metric {
+    padding: 0.5rem;
+    border-radius: 8px;
+    background: rgba(108, 117, 125, 0.1);
+    margin-bottom: 0.5rem;
+}
+
+.health-metric .metric-value {
+    font-size: 1.5rem;
+    font-weight: bold;
+    display: block;
+    margin-bottom: 0.25rem;
+}
+
+/* Dark Mode Support */
+[data-theme="dark"] .health-metric {
+    background: rgba(255, 255, 255, 0.1);
+}
+
+[data-theme="dark"] .health-score {
+    background: linear-gradient(135deg, #a8b3f0 0%, #c4a6e5 100%);
+    background-clip: text;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+/* Loading States */
+.claude-health-loading {
+    opacity: 0.6;
+    pointer-events: none;
+}
+
+.claude-health-loading .health-score::after {
+    content: "";
+    display: inline-block;
+    width: 20px;
+    height: 20px;
+    border: 2px solid #f3f3f3;
+    border-top: 2px solid #667eea;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin-left: 10px;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .health-score {
+        font-size: 2.5rem;
+    }
+    
+    .health-metric .metric-value {
+        font-size: 1.25rem;
+    }
+}
+
+/* Animation für Updates */
+.health-metric-updated {
+    animation: pulse 0.5s ease-in-out;
+}
+
+@keyframes pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+    100% { transform: scale(1); }
+}
+
+/* Status-spezifische Farben */
+.health-status.text-success {
+    color: #56ab2f !important;
+}
+
+.health-status.text-warning {
+    color: #f2994a !important;
+}
+
+.health-status.text-danger {
+    color: #ed5565 !important;
+}
+
+/* Performance Charts Styles */
+.performance-charts-row {
+    margin-top: 1.5rem;
+}
+
+.performance-chart-container {
+    background: var(--bs-body-bg);
+    border-radius: 12px;
+    padding: 1.5rem;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    border: 1px solid var(--bs-border-color);
+}
+
+.performance-chart-container h5 {
+    color: var(--bs-body-color);
+    margin-bottom: 1rem;
+    font-weight: 600;
+}
+
+.chart-toggle-buttons .btn {
+    padding: 0.25rem 0.75rem;
+    font-size: 0.875rem;
+    border-radius: 6px;
+}
+
+.chart-loading {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 10;
+    background: rgba(255,255,255,0.9);
+    padding: 1rem;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+}
+
+/* Events Stream Styles */
+.events-stream-container {
+    background: var(--bs-body-bg);
+    border-radius: 12px;
+    border: 1px solid var(--bs-border-color);
+}
+
+.events-stream-table {
+    margin-bottom: 0;
+}
+
+.events-stream-table thead th {
+    background: var(--bs-gray-100);
+    border-bottom: 2px solid var(--bs-border-color);
+    font-weight: 600;
+    font-size: 0.875rem;
+    padding: 0.75rem 0.5rem;
+}
+
+.events-stream-table tbody td {
+    padding: 0.5rem;
+    vertical-align: middle;
+    border-bottom: 1px solid var(--bs-border-color-translucent);
+}
+
+.event-row:hover {
+    background-color: var(--bs-gray-50);
+}
+
+.event-message {
+    font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Roboto Mono', monospace;
+    line-height: 1.4;
+}
+
+.priority-badge {
+    font-size: 0.7rem;
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    font-weight: 600;
+}
+
+/* Priority-specific Styles */
+.event-row[data-priority="critical"] {
+    border-left: 3px solid #ed5565;
+}
+
+.event-row[data-priority="high"] {
+    border-left: 3px solid #f2994a;
+}
+
+.event-row[data-priority="medium"] {
+    border-left: 3px solid #2196F3;
+}
+
+/* Events Filter Dropdown */
+.events-filter-dropdown .dropdown-item {
+    font-size: 0.875rem;
+    padding: 0.5rem 1rem;
+}
+
+.events-filter-dropdown .dropdown-item:hover {
+    background-color: var(--bs-primary-bg-subtle);
+}
+
+/* Performance Threshold Indicators */
+.performance-threshold-good {
+    color: #56ab2f;
+    font-weight: 600;
+}
+
+.performance-threshold-warning {
+    color: #f2994a;
+    font-weight: 600;
+}
+
+.performance-threshold-critical {
+    color: #ed5565;
+    font-weight: 600;
+}
+
+/* Events Refresh Countdown */
+.events-refresh-indicator {
+    font-size: 0.75rem;
+    color: var(--bs-text-muted);
+}
+
+.events-refresh-indicator .countdown {
+    font-weight: 600;
+    color: var(--bs-primary);
+}
+
+/* Dark Mode Support für Performance Charts */
+[data-theme="dark"] .performance-chart-container {
+    background: var(--bs-dark);
+    border-color: var(--bs-gray-700);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+}
+
+[data-theme="dark"] .events-stream-table thead th {
+    background: var(--bs-gray-800);
+    color: var(--bs-gray-200);
+}
+
+[data-theme="dark"] .event-row:hover {
+    background-color: var(--bs-gray-800);
+}
+
+[data-theme="dark"] .chart-loading {
+    background: rgba(33, 37, 41, 0.9);
+    color: var(--bs-gray-200);
+}
+
+/* Mobile Responsive Optimizations */
+@media (max-width: 768px) {
+    .performance-charts-row .col-md-6 {
+        margin-bottom: 1rem;
+    }
+    
+    .performance-chart-container {
+        padding: 1rem;
+    }
+    
+    .chart-toggle-buttons {
+        margin-bottom: 0.5rem;
+    }
+    
+    .events-stream-table {
+        font-size: 0.8rem;
+    }
+    
+    .events-stream-table thead th,
+    .events-stream-table tbody td {
+        padding: 0.4rem 0.3rem;
+    }
+    
+    .event-message {
+        font-size: 0.75rem;
+    }
+    
+    /* Hide less important columns on mobile */
+    .events-stream-table th:nth-child(2),
+    .events-stream-table td:nth-child(2) {
+        display: none;
+    }
+}
+
+/* Animation für neue Events */
+.new-event-highlight {
+    animation: highlightEvent 2s ease-out;
+}
+
+@keyframes highlightEvent {
+    0% {
+        background-color: rgba(102, 126, 234, 0.3);
+        transform: scale(1.01);
+    }
+    100% {
+        background-color: transparent;
+        transform: scale(1);
+    }
+}
+
+/* Chart Container Focus States */
+.chart-container:focus-within {
+    box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+    border-color: rgba(102, 126, 234, 0.5);
+}
+
+/* Performance Trend Indicators */
+.trend-indicator {
+    display: inline-flex;
+    align-items: center;
+    font-size: 0.875rem;
+    margin-left: 0.5rem;
+}
+
+.trend-up {
+    color: #56ab2f;
+}
+
+.trend-down {
+    color: #ed5565;
+}
+
+.trend-stable {
+    color: var(--bs-text-muted);
+}

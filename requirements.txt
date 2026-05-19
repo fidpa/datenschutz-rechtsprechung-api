@@ -1,0 +1,72 @@
+# Core Web Framework
+fastapi==0.104.1
+uvicorn[standard]==0.24.0
+pydantic==2.5.0
+pydantic-settings==2.1.0
+python-dotenv==1.0.0
+
+# Database
+sqlalchemy==2.0.23
+asyncpg==0.29.0
+psycopg2-binary==2.9.9
+alembic==1.12.1
+
+# Web Scraping & HTTP
+httpx==0.27.0
+beautifulsoup4==4.12.2
+lxml==4.9.3
+
+# NLP & Text Processing
+spacy==3.7.2
+# Note: Run after install: python -m spacy download de_core_news_sm
+
+# PDF Processing
+pdfplumber==0.10.3
+pypdf==3.17.0
+
+# Task Queue & Caching
+celery==5.3.4
+redis==5.0.1
+flower==2.0.1  # Celery monitoring
+
+# Logging & Monitoring
+structlog==23.2.0
+python-json-logger==2.0.7
+psutil==5.9.6  # System metrics
+aiofiles==23.2.1  # Async file operations für Claude Logging
+
+# Testing
+pytest==7.4.3
+pytest-asyncio==0.21.1
+pytest-cov==4.1.0
+pytest-mock==3.12.0
+pytest-httpx==0.30.0
+faker==20.1.0
+aiosqlite==0.20.0    # In-memory SQLite for tests (sqlite+aiosqlite:///:memory:)
+fakeredis==2.26.1    # Fake async Redis for tests (tests/conftest.py imports fakeredis.aioredis)
+
+# Development Tools
+black==23.11.0
+flake8==6.1.0
+mypy==1.7.0
+pre-commit==3.5.0
+ipython==8.17.2
+
+# Flask Web-UI
+flask==3.0.0
+flask-login==0.6.3
+flask-wtf==1.2.1
+bcrypt==4.1.3    # Password hashing for the Flask admin UI (src/web/models/user.py)
+waitress==3.0.0  # Production WSGI server (ersetzt Flask Dev Server)
+pandas==2.3.1    # Excel export
+openpyxl==3.1.2  # Excel writer
+numpy==1.26.4    # Pinned <2.0: spaCy 3.7.2 / thinc 8.2.x are built against the
+                 # numpy 1.x C-ABI; numpy 2.0 breaks `import spacy` with
+                 # "numpy.dtype size changed" (binary incompatibility).
+
+# Utilities
+python-dateutil==2.8.2
+pytz==2023.3.post1
+tenacity==8.2.3  # Retry logic
+tqdm==4.66.1     # Progress bars
+click==8.1.7     # CLI tools

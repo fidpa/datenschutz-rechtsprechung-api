@@ -1,0 +1,1431 @@
+{% extends "base.html" %}
+
+{% block title %}Admin Dashboard - Datenschutz-Rechtsprechung API{% endblock %}
+
+{% block extra_css %}
+<!-- Enhanced CSS with modular theme system -->
+<link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/admin/dark-mode.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/components/admin-dashboard.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/components/loading.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/components/claude-health.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <!-- Header with Theme Toggle -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <h1 class="h2 mb-0">
+                    <i class="bi bi-speedometer2"></i> Datenschutz-Rechtsprechung API – Dashboard
+                </h1>
+                <div class="d-flex align-items-center gap-3">
+                    <small class="text-muted" data-last-refresh>Letztes Update: {{ stats.last_updated or 'Unbekannt' }}</small>
+                    <button id="themeToggle" class="btn btn-outline-secondary btn-sm" title="Theme wechseln (Strg+Shift+D)">
+                        <i class="bi bi-moon-fill"></i>
+                    </button>
+                    <button class="btn btn-outline-primary btn-sm" onclick="smartPoller.forceRefresh()" title="Dashboard aktualisieren">
+                        <i class="bi bi-arrow-clockwise"></i>
+                    </button>
+                </div>
+            </div>
+            {% if error_message %}
+            <div class="alert alert-warning alert-dismissible fade show" role="alert">
+                <i class="bi bi-exclamation-triangle"></i> {{ error_message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Metriken Karten -->
+    <div class="row">
+        <div class="col-md-3">
+            <div class="metric-card" data-stat="decisions.total">
+                <div class="metric-label">Entscheidungen Gesamt</div>
+                <div class="metric-value">{{ stats.decisions.total|default(0) }}</div>
+                <div class="metric-change">+{{ stats.decisions.today|default(0) }} heute</div>
+                <span class="stat-loading d-none">
+                    <span class="spinner-border spinner-border-sm"></span>
+                </span>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="metric-card green" data-stat="decisions.this_week">
+                <div class="metric-label">Diese Woche</div>
+                <div class="metric-value">{{ stats.decisions.this_week|default(0) }}</div>
+                <div class="metric-change">Neue Entscheidungen</div>
+                <span class="stat-loading d-none">
+                    <span class="spinner-border spinner-border-sm"></span>
+                </span>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="metric-card blue" data-stat="decisions.this_month">
+                <div class="metric-label">Diesen Monat</div>
+                <div class="metric-value">{{ stats.decisions.this_month|default(0) }}</div>
+                <div class="metric-change">Neue Entscheidungen</div>
+                <span class="stat-loading d-none">
+                    <span class="spinner-border spinner-border-sm"></span>
+                </span>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="metric-card orange" data-stat="quality.anonymization_rate">
+                <div class="metric-label">Anonymisierung</div>
+                <div class="metric-value">{{ stats.quality.anonymization_rate|default(0) }}%</div>
+                <div class="metric-change">Erfolgsrate</div>
+                <span class="stat-loading d-none">
+                    <span class="spinner-border spinner-border-sm"></span>
+                </span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Charts Row -->
+    <div class="row mt-4">
+        <!-- Quellen-Verteilung -->
+        <div class="col-md-4">
+            <div class="chart-container" data-chart-type="sources">
+                <h5 class="mb-3">Quellen-Verteilung</h5>
+                <div class="chart-placeholder" style="height: 200px; display: flex; align-items: center; justify-content: center; background: rgba(108, 117, 125, 0.1); border-radius: 8px;">
+                    <div class="text-center">
+                        <div class="spinner-border text-primary" role="status" aria-hidden="true"></div>
+                        <div class="mt-2 text-muted">Chart wird geladen...</div>
+                    </div>
+                </div>
+                <canvas id="sourcesChart" height="200" style="display: none;"></canvas>
+                <div class="mt-3 text-center">
+                    <small class="text-muted">
+                        GDPRhub: {{ stats.sources.gdprhub|default(0) }} | 
+                        OpenLegalData: {{ stats.sources.openlegaldata|default(0) }}
+                    </small>
+                </div>
+            </div>
+        </div>
+
+        <!-- Top DSGVO-Artikel -->
+        <div class="col-md-4">
+            <div class="chart-container" data-chart-type="articles">
+                <h5 class="mb-3">Top 10 DSGVO-Artikel</h5>
+                <div class="chart-placeholder" style="height: 200px; display: flex; align-items: center; justify-content: center; background: rgba(108, 117, 125, 0.1); border-radius: 8px;">
+                    <div class="text-center">
+                        <div class="spinner-border text-primary" role="status" aria-hidden="true"></div>
+                        <div class="mt-2 text-muted">Chart wird geladen...</div>
+                    </div>
+                </div>
+                <canvas id="articlesChart" height="200" style="display: none;"></canvas>
+            </div>
+        </div>
+
+        <!-- Top Gerichte -->
+        <div class="col-md-4">
+            <div class="chart-container" data-chart-type="courts">
+                <h5 class="mb-3">Top 10 Gerichte</h5>
+                <div class="chart-placeholder" style="height: 200px; display: flex; align-items: center; justify-content: center; background: rgba(108, 117, 125, 0.1); border-radius: 8px;">
+                    <div class="text-center">
+                        <div class="spinner-border text-primary" role="status" aria-hidden="true"></div>
+                        <div class="mt-2 text-muted">Chart wird geladen...</div>
+                    </div>
+                </div>
+                <canvas id="courtsChart" height="200" style="display: none;"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- Claude Health Score Row -->
+    <div class="row mt-4">
+        <div class="col-md-6">
+            <div class="chart-container">
+                <h5 class="mb-3">
+                    <i class="bi bi-heart-pulse"></i> Claude System Health
+                </h5>
+                
+                <div id="claudeHealthWidget" class="text-center">
+                    <!-- Health Score Display -->
+                    <div class="health-score-display mb-3">
+                        <div class="health-score" id="healthScore">--</div>
+                        <div class="health-status" id="healthStatus">Lade...</div>
+                    </div>
+                    
+                    <!-- Metrics Row -->
+                    <div class="row text-center mb-3">
+                        <div class="col-4">
+                            <div class="health-metric">
+                                <span class="metric-value" id="totalEvents">--</span>
+                                <br><small class="text-muted">Events (24h)</small>
+                            </div>
+                        </div>
+                        <div class="col-4">
+                            <div class="health-metric">
+                                <span class="metric-value text-danger" id="criticalEvents">--</span>
+                                <br><small class="text-muted">Critical</small>
+                            </div>
+                        </div>
+                        <div class="col-4">
+                            <div class="health-metric">
+                                <span class="metric-value" id="errorRate">--%</span>
+                                <br><small class="text-muted">Error Rate</small>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Analysis Freshness -->
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <small class="text-muted">Letzte Analysis:</small>
+                        <span class="badge" id="analysisFreshness">--</span>
+                    </div>
+                    
+                    <!-- Action Buttons -->
+                    <div class="btn-group w-100" role="group">
+                        <button class="btn btn-sm btn-outline-primary" onclick="refreshClaudeHealth()">
+                            <i class="bi bi-arrow-clockwise"></i> Refresh
+                        </button>
+                        <button class="btn btn-sm btn-outline-info" onclick="triggerClaudeAnalysis()">
+                            <i class="bi bi-play-circle"></i> Analysis
+                        </button>
+                        <button class="btn btn-sm btn-outline-secondary" onclick="showClaudeEvents()">
+                            <i class="bi bi-list-ul"></i> Events
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- System & Aktionen Row -->
+        <div class="col-md-6">
+            <div class="chart-container">
+                <h5 class="mb-3">
+                    <i class="bi bi-cpu"></i> System-Status
+                </h5>
+                
+                <div class="system-metric">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <span>CPU Auslastung</span>
+                        <span class="badge bg-primary">{{ stats.system.cpu_percent|default(0) }}%</span>
+                    </div>
+                    <div class="progress" style="height: 8px;">
+                        <div class="progress-bar" style="width: {{ stats.system.cpu_percent|default(0) }}%"></div>
+                    </div>
+                </div>
+
+                <div class="system-metric">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <span>RAM Auslastung</span>
+                        <span class="badge bg-info">{{ stats.system.memory_percent|default(0) }}%</span>
+                    </div>
+                    <div class="progress" style="height: 8px;">
+                        <div class="progress-bar bg-info" style="width: {{ stats.system.memory_percent|default(0) }}%"></div>
+                    </div>
+                    <small class="text-muted">
+                        {{ stats.system.memory_used_gb|default(0) }} / {{ stats.system.memory_total_gb|default(0) }} GB
+                    </small>
+                </div>
+
+                <div class="system-metric">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <span>Festplatte</span>
+                        <span class="badge bg-warning">{{ stats.system.disk_percent|default(0) }}%</span>
+                    </div>
+                    <div class="progress" style="height: 8px;">
+                        <div class="progress-bar bg-warning" style="width: {{ stats.system.disk_percent|default(0) }}%"></div>
+                    </div>
+                    <small class="text-muted">
+                        {{ stats.system.disk_used_gb|default(0) }} / {{ stats.system.disk_total_gb|default(0) }} GB
+                    </small>
+                </div>
+
+                <div class="mt-3">
+                    <button class="btn btn-sm btn-outline-primary" onclick="refreshSystemStats(); smartPoller.forceRefresh();">
+                        <i class="bi bi-arrow-clockwise"></i> Aktualisieren
+                    </button>
+                    <a href="{{ url_for('admin.admin_system.system_overview') }}" class="btn btn-sm btn-outline-secondary">
+                        <i class="bi bi-info-circle"></i> Details
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Performance Charts Row (NEU) -->
+    <div class="row mt-4">
+        <!-- Component Performance Chart -->
+        <div class="col-md-6">
+            <div class="chart-container" data-chart-type="performance">
+                <h5 class="mb-3">
+                    <i class="bi bi-bar-chart"></i> Component Performance
+                </h5>
+                <div class="chart-placeholder" style="height: 250px; display: flex; align-items: center; justify-content: center; background: rgba(108, 117, 125, 0.1); border-radius: 8px;">
+                    <div class="text-center">
+                        <div class="spinner-border text-primary" role="status" aria-hidden="true"></div>
+                        <div class="mt-2 text-muted">Performance Chart wird geladen...</div>
+                    </div>
+                </div>
+                <canvas id="componentPerformanceChart" height="250" style="display: none;"></canvas>
+                <div id="componentChartLoading" class="text-center d-none">
+                    <span class="spinner-border spinner-border-sm"></span> Lade Performance-Daten...
+                </div>
+            </div>
+        </div>
+
+        <!-- Performance Trend Chart -->
+        <div class="col-md-6">
+            <div class="chart-container" data-chart-type="trend">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h5 class="mb-0">
+                        <i class="bi bi-graph-up"></i> Performance Trend
+                    </h5>
+                    <div class="btn-group btn-group-sm" role="group">
+                        <button type="button" class="btn btn-outline-primary active" data-trend="24h">24h</button>
+                        <button type="button" class="btn btn-outline-primary" data-trend="7d">7d</button>
+                    </div>
+                </div>
+                <div class="chart-placeholder" style="height: 250px; display: flex; align-items: center; justify-content: center; background: rgba(108, 117, 125, 0.1); border-radius: 8px;">
+                    <div class="text-center">
+                        <div class="spinner-border text-primary" role="status" aria-hidden="true"></div>
+                        <div class="mt-2 text-muted">Trend Chart wird geladen...</div>
+                    </div>
+                </div>
+                <canvas id="performanceTrendChart" height="250" style="display: none;"></canvas>
+                <div id="trendChartLoading" class="text-center d-none">
+                    <span class="spinner-border spinner-border-sm"></span> Lade Trend-Daten...
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Live Events & Admin Actions Row (NEU) -->
+    <div class="row mt-4">
+        <!-- Live Events Stream -->
+        <div class="col-md-6">
+            <div class="chart-container">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h5 class="mb-0">
+                        <i class="bi bi-activity"></i> Live Events
+                    </h5>
+                    <div class="dropdown">
+                        <button class="btn btn-outline-secondary btn-sm dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                            <span id="eventsPriorityFilter">High</span>
+                        </button>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="#" data-priority="critical">🔴 Critical</a></li>
+                            <li><a class="dropdown-item" href="#" data-priority="high">🟠 High</a></li>
+                            <li><a class="dropdown-item" href="#" data-priority="medium">🟡 Medium</a></li>
+                            <li><a class="dropdown-item" href="#" data-priority="all">Alle</a></li>
+                        </ul>
+                    </div>
+                </div>
+                
+                <div id="eventsStreamContainer" style="max-height: 300px; overflow-y: auto;">
+                    <table class="table table-sm table-hover" id="eventsStreamTable">
+                        <thead class="table-light">
+                            <tr>
+                                <th style="width: 60px;">Zeit</th>
+                                <th style="width: 80px;">Component</th>
+                                <th style="width: 60px;">Priority</th>
+                                <th>Message</th>
+                            </tr>
+                        </thead>
+                        <tbody id="eventsTableBody">
+                            <tr>
+                                <td colspan="4" class="text-center text-muted">
+                                    <span class="spinner-border spinner-border-sm"></span> Lade Events...
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                
+                <div class="mt-2 d-flex justify-content-between align-items-center">
+                    <small class="text-muted">
+                        Auto-Refresh: <span id="eventsRefreshCountdown">30</span>s
+                    </small>
+                    <button class="btn btn-sm btn-outline-primary" onclick="refreshEventsStream()">
+                        <i class="bi bi-arrow-clockwise"></i> Refresh
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Admin-Aktionen (bestehend, aber kompakter) -->
+        <div class="col-md-6">
+            <div class="chart-container">
+                <h5 class="mb-3">
+                    <i class="bi bi-terminal"></i> Admin-Aktionen
+                </h5>
+                
+                <div class="mb-3">
+                    <h6>Daten-Export</h6>
+                    <p class="text-muted small">Exportiere alle Entscheidungen</p>
+                    <button class="btn btn-success me-2" data-export="excel">
+                        <i class="bi bi-file-earmark-excel"></i> Excel Export
+                    </button>
+                    <button class="btn btn-primary" data-export="json">
+                        <i class="bi bi-filetype-json"></i> JSON Export
+                    </button>
+                    <div class="cli-command mt-2">
+                        $ python scripts/admin.py export --format excel
+                    </div>
+                </div>
+
+                <hr>
+
+                <div class="mb-3">
+                    <h6>Crawler starten</h6>
+                    <p class="text-muted small">Manueller Crawl-Vorgang</p>
+                    <button class="btn btn-info me-2" data-crawl="gdprhub">
+                        <i class="bi bi-globe"></i> GDPRhub
+                    </button>
+                    <button class="btn btn-info" data-crawl="openlegaldata">
+                        <i class="bi bi-database"></i> OpenLegalData
+                    </button>
+                    <div class="cli-command mt-2">
+                        $ python scripts/run_crawler.py gdprhub
+                    </div>
+                </div>
+
+                <hr>
+
+                <div>
+                    <h6>CLI Admin-Tool</h6>
+                    <p class="text-muted small">Erweiterte Verwaltung über Terminal</p>
+                    <div class="cli-command">$ python scripts/admin.py --help</div>
+                    <a href="https://github.com/fidpa/datenschutz-rechtsprechung-api/wiki/Admin-CLI" class="btn btn-sm btn-outline-info mt-2" target="_blank">
+                        <i class="bi bi-book"></i> CLI Dokumentation
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Letzte Aktivitäten -->
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="chart-container">
+                <h5 class="mb-3">
+                    <i class="bi bi-clock-history"></i> Letzte Aktivitäten
+                </h5>
+                <div id="activityList">
+                    {% for activity in stats.recent_activity[:5] %}
+                    <div class="activity-item">
+                        <div class="d-flex justify-content-between">
+                            <div>
+                                <i class="bi bi-file-earmark-text text-primary"></i>
+                                <strong>Neue Entscheidung:</strong> {{ activity.title }}
+                            </div>
+                            <small class="text-muted">
+                                {{ activity.source }} | {{ activity.time }}
+                            </small>
+                        </div>
+                    </div>
+                    {% else %}
+                    <p class="text-muted">Keine aktuellen Aktivitäten</p>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Alert Modal -->
+<div class="modal fade" id="alertModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="alertTitle">Status</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="alertMessage">
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Schließen</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<!-- Chart.js - Lazy Loaded -->
+<!-- <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.js"></script> -->
+
+<!-- Enhanced JavaScript Modules with modular architecture -->
+<script src="{{ url_for('static', filename='js/theme.js') }}"></script>
+<script src="{{ url_for('static', filename='js/shared/loading-states.js') }}"></script>
+<script src="{{ url_for('static', filename='js/admin-modules/admin-dashboard.js') }}"></script>
+
+<!-- SVG Icon System für Performance Optimization -->
+<script src="{{ url_for('static', filename='js/utils/svg-icons.js') }}"></script>
+
+<!-- Chart Loader für Dynamic Loading & Code Splitting -->
+<script src="{{ url_for('static', filename='js/modules/chart-loader.js') }}"></script>
+
+<script>
+// Chart Loading mit Code Splitting
+let chartDataCache = {};
+
+// Chart Konfiguration
+const chartColors = {
+    purple: 'rgba(102, 126, 234, 0.8)',
+    green: 'rgba(86, 171, 47, 0.8)',
+    blue: 'rgba(33, 147, 176, 0.8)',
+    orange: 'rgba(242, 153, 74, 0.8)',
+    red: 'rgba(237, 85, 101, 0.8)'
+};
+
+// Network-aware Configuration
+const getNetworkAwareConfig = () => {
+    const connection = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
+    const isSlowConnection = connection ? (connection.effectiveType === 'slow-2g' || connection.effectiveType === '2g') : false;
+    
+    return {
+        isSlowConnection,
+        connectionType: connection?.effectiveType || 'unknown',
+        refreshInterval: isSlowConnection ? 5 * 60 * 1000 : 30 * 1000, // 5min vs 30s
+        chartAnimations: !isSlowConnection
+    };
+};
+
+const networkConfig = getNetworkAwareConfig();
+console.log('Network config:', networkConfig);
+
+// Lazy Chart Initialization Functions
+let chartsInitialized = {
+    sources: false,
+    articles: false,
+    courts: false,
+    performance: false,
+    trend: false
+};
+
+// Chart data from server
+chartDataCache = {
+    sources: {
+        gdprhub: {{ stats.sources.gdprhub|default(0) }},
+        openlegaldata: {{ stats.sources.openlegaldata|default(0) }},
+        andere: {{ stats.sources.andere|default(0) }}
+    },
+    articles: {{ stats.articles|tojson|safe }},
+    courts: {{ stats.courts|tojson|safe }}
+};
+
+// Initialize Quellen-Verteilung Chart mit Dynamic Loading
+const initSourcesChart = async () => {
+    if (chartsInitialized.sources) return;
+    
+    try {
+        const container = document.querySelector('[data-chart-type="sources"]');
+        const placeholder = container.querySelector('.chart-placeholder');
+        const canvas = container.querySelector('#sourcesChart');
+        
+        // Chart config
+        const chartConfig = {
+            type: 'doughnut',
+            data: {
+                labels: ['GDPRhub', 'OpenLegalData', 'Andere'],
+                datasets: [{
+                    data: [
+                        chartDataCache.sources.gdprhub,
+                        chartDataCache.sources.openlegaldata,
+                        chartDataCache.sources.andere
+                    ],
+                    backgroundColor: [chartColors.purple, chartColors.green, chartColors.blue]
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom'
+                    }
+                }
+            }
+        };
+        
+        // Use ChartLoader für dynamic loading
+        await window.chartLoader.createChart('sourcesChart', chartConfig, {
+            reducedPerformance: smartConfig.isSlowConnection
+        });
+        
+        // Hide placeholder, show chart
+        placeholder.style.display = 'none';
+        canvas.style.display = 'block';
+        chartsInitialized.sources = true;
+        
+    } catch (error) {
+        console.error('Failed to initialize sources chart:', error);
+        const container = document.querySelector('[data-chart-type="sources"]');
+        const placeholder = container.querySelector('.chart-placeholder');
+        placeholder.innerHTML = '<div class="text-center text-danger"><i class="bi bi-exclamation-triangle"></i><br>Chart konnte nicht geladen werden</div>';
+    }
+};
+
+// Initialize DSGVO-Artikel Chart mit Dynamic Loading
+const initArticlesChart = async () => {
+    if (chartsInitialized.articles) return;
+    
+    try {
+        const container = document.querySelector('[data-chart-type="articles"]');
+        const placeholder = container.querySelector('.chart-placeholder');
+        const canvas = container.querySelector('#articlesChart');
+        
+        const chartConfig = {
+            type: 'bar',
+            data: {
+                labels: chartDataCache.articles.map(a => a.article),
+                datasets: [{
+                    label: 'Anzahl',
+                    data: chartDataCache.articles.map(a => a.count),
+                    backgroundColor: chartColors.blue
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: false
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            precision: 0
+                        }
+                    }
+                }
+            }
+        };
+        
+        await window.chartLoader.createChart('articlesChart', chartConfig, {
+            reducedPerformance: smartConfig.isSlowConnection
+        });
+        
+        placeholder.style.display = 'none';
+        canvas.style.display = 'block';
+        chartsInitialized.articles = true;
+        
+    } catch (error) {
+        console.error('Failed to initialize articles chart:', error);
+        const container = document.querySelector('[data-chart-type="articles"]');
+        const placeholder = container.querySelector('.chart-placeholder');
+        placeholder.innerHTML = '<div class="text-center text-danger"><i class="bi bi-exclamation-triangle"></i><br>Chart konnte nicht geladen werden</div>';
+    }
+};
+
+// Initialize Gerichte Chart mit Dynamic Loading
+const initCourtsChart = async () => {
+    if (chartsInitialized.courts) return;
+    
+    try {
+        const container = document.querySelector('[data-chart-type="courts"]');
+        const placeholder = container.querySelector('.chart-placeholder');
+        const canvas = container.querySelector('#courtsChart');
+        
+        const chartConfig = {
+            type: 'bar',
+            data: {
+                labels: chartDataCache.courts.map(c => c.court),
+                datasets: [{
+                    label: 'Anzahl',
+                    data: chartDataCache.courts.map(c => c.count),
+                    backgroundColor: chartColors.orange
+                }]
+            },
+            options: {
+                indexAxis: 'y',
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: false
+                    }
+                },
+                scales: {
+                    x: {
+                        beginAtZero: true,
+                        ticks: {
+                            precision: 0
+                        }
+                    }
+                }
+            }
+        };
+        
+        await window.chartLoader.createChart('courtsChart', chartConfig, {
+            reducedPerformance: smartConfig.isSlowConnection
+        });
+        
+        placeholder.style.display = 'none';
+        canvas.style.display = 'block';
+        chartsInitialized.courts = true;
+        
+    } catch (error) {
+        console.error('Failed to initialize courts chart:', error);
+        const container = document.querySelector('[data-chart-type="courts"]');
+        const placeholder = container.querySelector('.chart-placeholder');
+        placeholder.innerHTML = '<div class="text-center text-danger"><i class="bi bi-exclamation-triangle"></i><br>Chart konnte nicht geladen werden</div>';
+    }
+};
+
+// Admin-Funktionen
+function showAlert(title, message, type = 'info') {
+    const modal = new bootstrap.Modal(document.getElementById('alertModal'));
+    document.getElementById('alertTitle').textContent = title;
+    document.getElementById('alertMessage').innerHTML = `
+        <div class="alert alert-${type}" role="alert">
+            ${message}
+        </div>
+    `;
+    modal.show();
+}
+
+function triggerExport(format) {
+    fetch('{{ url_for("admin.admin_dashboard.trigger_export") }}', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ type: format })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            showAlert('Export erfolgreich', data.message, 'success');
+        } else {
+            showAlert('Export fehlgeschlagen', data.error || 'Unbekannter Fehler', 'danger');
+        }
+    })
+    .catch(error => {
+        showAlert('Fehler', 'Netzwerkfehler: ' + error, 'danger');
+    });
+}
+
+function triggerCrawl(source) {
+    fetch('{{ url_for("admin.admin_dashboard.trigger_crawl") }}', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ source: source })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            showAlert('Crawler gestartet', data.message, 'info');
+        } else {
+            showAlert('Crawler-Start fehlgeschlagen', data.error || 'Unbekannter Fehler', 'danger');
+        }
+    })
+    .catch(error => {
+        showAlert('Fehler', 'Netzwerkfehler: ' + error, 'danger');
+    });
+}
+
+function refreshSystemStats() {
+    fetch('{{ url_for("admin.admin_system.system_status") }}')
+        .then(response => response.json())
+        .then(data => {
+            // Update CPU
+            document.querySelector('.system-metric .badge.bg-primary').textContent = data.cpu.percent + '%';
+            document.querySelector('.system-metric .progress-bar').style.width = data.cpu.percent + '%';
+            
+            // Update Memory
+            document.querySelector('.system-metric .badge.bg-info').textContent = data.memory.percent + '%';
+            document.querySelector('.system-metric .progress-bar.bg-info').style.width = data.memory.percent + '%';
+            
+            // Update Disk
+            document.querySelector('.system-metric .badge.bg-warning').textContent = data.disk.percent + '%';
+            document.querySelector('.system-metric .progress-bar.bg-warning').style.width = data.disk.percent + '%';
+            
+            showAlert('Aktualisiert', 'System-Status wurde aktualisiert', 'success');
+        })
+        .catch(error => {
+            showAlert('Fehler', 'Konnte System-Status nicht aktualisieren', 'danger');
+        });
+}
+
+// Claude Health Functions
+function refreshClaudeHealth() {
+    const healthWidget = document.getElementById('claudeHealthWidget');
+    healthWidget.style.opacity = '0.6';
+    
+    fetch('/admin/api/claude/status')
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                updateClaudeHealthDisplay(data.data);
+            } else {
+                showAlert('Fehler', 'Konnte Claude Health nicht laden: ' + data.error, 'warning');
+            }
+        })
+        .catch(error => {
+            showAlert('Fehler', 'Netzwerkfehler beim Claude Health Check', 'danger');
+        })
+        .finally(() => {
+            healthWidget.style.opacity = '1';
+        });
+}
+
+function updateClaudeHealthDisplay(healthData) {
+    // Health Score
+    const score = healthData.health?.health_score || 0;
+    document.getElementById('healthScore').textContent = Math.round(score);
+    
+    // Status with color
+    const status = healthData.overall_status || 'unknown';
+    const statusElement = document.getElementById('healthStatus');
+    statusElement.textContent = status.toUpperCase();
+    statusElement.className = 'health-status';
+    
+    if (score >= 80) {
+        statusElement.classList.add('text-success');
+    } else if (score >= 60) {
+        statusElement.classList.add('text-warning');
+    } else {
+        statusElement.classList.add('text-danger');
+    }
+    
+    // Metrics
+    document.getElementById('totalEvents').textContent = healthData.health?.total_events || 0;
+    document.getElementById('criticalEvents').textContent = healthData.critical_events_24h || 0;
+    document.getElementById('errorRate').textContent = (healthData.health?.error_rate_percent || 0).toFixed(1) + '%';
+    
+    // Analysis Freshness
+    const freshness = document.getElementById('analysisFreshness');
+    if (healthData.analysis_fresh) {
+        const hours = healthData.last_analysis_hours_ago;
+        freshness.textContent = hours ? `vor ${hours}h` : 'frisch';
+        freshness.className = 'badge bg-success';
+    } else {
+        freshness.textContent = 'veraltet';
+        freshness.className = 'badge bg-warning';
+    }
+}
+
+function triggerClaudeAnalysis() {
+    const btn = event.target.closest('button');
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Läuft...';
+    
+    fetch('/admin/api/claude/analysis', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            showAlert('Analysis gestartet', 'Claude Analysis wurde erfolgreich durchgeführt', 'success');
+            // Refresh health after analysis
+            setTimeout(() => refreshClaudeHealth(), 2000);
+        } else {
+            showAlert('Analysis fehlgeschlagen', data.error, 'danger');
+        }
+    })
+    .catch(error => {
+        showAlert('Fehler', 'Konnte Analysis nicht starten', 'danger');
+    })
+    .finally(() => {
+        btn.disabled = false;
+        btn.innerHTML = '<i class="bi bi-play-circle"></i> Analysis';
+    });
+}
+
+function showClaudeEvents() {
+    fetch('/admin/api/claude/logs?priority=critical&hours=24')
+        .then(response => response.json())
+        .then(data => {
+            if (data.success && data.data.length > 0) {
+                let eventsHtml = '<div class="list-group">';
+                data.data.slice(0, 5).forEach(event => {
+                    eventsHtml += `
+                        <div class="list-group-item">
+                            <div class="d-flex w-100 justify-content-between">
+                                <h6 class="mb-1">${event.component || 'System'}</h6>
+                                <small>${event.timestamp?.substring(0, 16) || ''}</small>
+                            </div>
+                            <p class="mb-1">${event.message || 'Kein Nachricht'}</p>
+                            <small class="text-danger">${event.priority?.toUpperCase() || 'UNKNOWN'}</small>
+                        </div>
+                    `;
+                });
+                eventsHtml += '</div>';
+                
+                if (data.count > 5) {
+                    eventsHtml += `<p class="mt-2 text-muted">... und ${data.count - 5} weitere Events</p>`;
+                }
+                
+                showAlert('Critical Events (24h)', eventsHtml, 'info');
+            } else {
+                showAlert('Keine Events', 'Keine kritischen Events in den letzten 24 Stunden gefunden', 'success');
+            }
+        })
+        .catch(error => {
+            showAlert('Fehler', 'Konnte Events nicht laden', 'danger');
+        });
+}
+
+// Performance Charts Variables
+let componentPerformanceChart = null;
+let performanceTrendChart = null;
+let eventsRefreshInterval = null;
+let eventsCountdown = 30;
+let currentEventsPriority = 'high';
+
+// Initialize Performance Charts (Lazy Loaded)
+const initPerformanceChart = async () => {
+    if (chartsInitialized.performance) return;
+    
+    try {
+        const container = document.querySelector('[data-chart-type="performance"]');
+        const placeholder = container.querySelector('.chart-placeholder');
+        const canvas = container.querySelector('#componentPerformanceChart');
+        
+        const componentCtx = canvas.getContext('2d');
+        const chartConfig = {
+            type: 'bar',
+            data: {
+                labels: [],
+                datasets: [{
+                    label: 'Mean (ms)',
+                    data: [],
+                    backgroundColor: 'rgba(102, 126, 234, 0.8)',
+                    borderColor: 'rgba(102, 126, 234, 1)',
+                    borderWidth: 1
+                }, {
+                    label: 'P95 (ms)',
+                    data: [],
+                    backgroundColor: 'rgba(86, 171, 47, 0.8)',
+                    borderColor: 'rgba(86, 171, 47, 1)',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                indexAxis: 'y',
+                responsive: true,
+                maintainAspectRatio: false,
+                animation: networkConfig.chartAnimations,
+                scales: {
+                    x: {
+                        beginAtZero: true,
+                        ticks: {
+                            callback: function(value) {
+                                return value + 'ms';
+                            }
+                        },
+                        grid: {
+                            color: 'rgba(0,0,0,0.1)'
+                        }
+                    },
+                    y: {
+                        grid: {
+                            display: false
+                        }
+                    }
+                },
+                plugins: {
+                    legend: {
+                        position: 'top',
+                        labels: {
+                            usePointStyle: true,
+                            padding: 20
+                        }
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                return context.dataset.label + ': ' + context.parsed.x + 'ms';
+                            }
+                        }
+                    }
+                }
+            }
+        };
+        
+        componentPerformanceChart = await window.chartLoader.createChart('componentPerformanceChart', chartConfig, {
+            reducedPerformance: smartConfig.isSlowConnection
+        });
+        
+        placeholder.style.display = 'none';
+        canvas.style.display = 'block';
+        chartsInitialized.performance = true;
+        
+    } catch (error) {
+        console.error('Failed to initialize performance chart:', error);
+        const container = document.querySelector('[data-chart-type="performance"]');
+        const placeholder = container.querySelector('.chart-placeholder');
+        placeholder.innerHTML = '<div class="text-center text-danger"><i class="bi bi-exclamation-triangle"></i><br>Performance Chart konnte nicht geladen werden</div>';
+    }
+};
+
+const initTrendChart = async () => {
+    if (chartsInitialized.trend) return;
+    
+    try {
+        const container = document.querySelector('[data-chart-type="trend"]');
+        const placeholder = container.querySelector('.chart-placeholder');
+        const canvas = container.querySelector('#performanceTrendChart');
+        
+        const trendCtx = canvas.getContext('2d');
+        const trendConfig = {
+            type: 'line',
+            data: {
+                labels: [],
+                datasets: [{
+                    label: 'Mean Response Time',
+                    data: [],
+                    borderColor: 'rgba(102, 126, 234, 1)',
+                    backgroundColor: 'rgba(102, 126, 234, 0.1)',
+                    fill: true,
+                    tension: 0.3
+                }, {
+                    label: 'P95 Response Time',
+                    data: [],
+                    borderColor: 'rgba(237, 85, 101, 1)',
+                    backgroundColor: 'rgba(237, 85, 101, 0.1)',
+                    fill: false,
+                    tension: 0.3
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                animation: networkConfig.chartAnimations,
+                scales: {
+                    x: {
+                        grid: {
+                            color: 'rgba(0,0,0,0.1)'
+                        }
+                    },
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            callback: function(value) {
+                                return value + 'ms';
+                            }
+                        },
+                        grid: {
+                            color: 'rgba(0,0,0,0.1)'
+                        }
+                    }
+                },
+                plugins: {
+                    legend: {
+                        position: 'top',
+                        labels: {
+                            usePointStyle: true,
+                            padding: 20
+                        }
+                    },
+                    tooltip: {
+                        mode: 'index',
+                        intersect: false,
+                        callbacks: {
+                            label: function(context) {
+                                return context.dataset.label + ': ' + context.parsed.y + 'ms';
+                            }
+                        }
+                    }
+                },
+                interaction: {
+                    mode: 'nearest',
+                    axis: 'x',
+                    intersect: false
+                }
+            }
+        };
+        
+        performanceTrendChart = await window.chartLoader.createChart('performanceTrendChart', trendConfig, {
+            reducedPerformance: smartConfig.isSlowConnection
+        });
+        
+        placeholder.style.display = 'none';
+        canvas.style.display = 'block';
+        chartsInitialized.trend = true;
+        
+    } catch (error) {
+        console.error('Failed to initialize trend chart:', error);
+        const container = document.querySelector('[data-chart-type="trend"]');
+        const placeholder = container.querySelector('.chart-placeholder');
+        placeholder.innerHTML = '<div class="text-center text-danger"><i class="bi bi-exclamation-triangle"></i><br>Trend Chart konnte nicht geladen werden</div>';
+    }
+};
+
+// Legacy function for compatibility
+function initializePerformanceCharts() {
+    // Legacy compatibility - charts are now lazy loaded
+    console.log('Performance charts will be initialized on demand');
+}
+
+// Batch Update für alle Monitoring-Daten
+async function updateMonitoringDashboard() {
+    try {
+        const [performanceData, healthData, eventsData] = await Promise.all([
+            fetch('/admin/api/claude/performance'),
+            fetch('/admin/api/claude/status'),
+            fetch(`/admin/api/claude/logs?priority=${currentEventsPriority}&hours=1`)
+        ]);
+        
+        // Performance Charts Update
+        if (performanceData.ok) {
+            const perfData = await performanceData.json();
+            if (perfData.success) {
+                updatePerformanceCharts(perfData.data);
+            }
+        }
+        
+        // Health Widget Update
+        if (healthData.ok) {
+            const healthResult = await healthData.json();
+            if (healthResult.success) {
+                updateClaudeHealthDisplay(healthResult.data);
+            }
+        }
+        
+        // Events Stream Update
+        if (eventsData.ok) {
+            const eventsResult = await eventsData.json();
+            if (eventsResult.success) {
+                updateEventsStream(eventsResult.data);
+            }
+        }
+        
+    } catch (error) {
+        console.error('Monitoring Dashboard Update Error:', error);
+        showAlert('Fehler', 'Konnte Monitoring-Daten nicht laden', 'warning');
+    }
+}
+
+// Performance Charts Update
+function updatePerformanceCharts(performanceData) {
+    if (!performanceData || !performanceData.chart_data) return;
+    
+    const chartData = performanceData.chart_data;
+    
+    // Component Performance Chart Update
+    if (componentPerformanceChart && chartData.components) {
+        componentPerformanceChart.data.labels = chartData.components;
+        componentPerformanceChart.data.datasets[0].data = chartData.mean_times || [];
+        componentPerformanceChart.data.datasets[1].data = chartData.p95_times || [];
+        componentPerformanceChart.update('none'); // No animation for performance
+    }
+    
+    // Performance Trend Chart Update (simplified für MVP)
+    if (performanceTrendChart && performanceData.performance_analysis) {
+        // Für MVP: Zeige letzte 24h mit Mock-Daten basierend auf Components
+        const hours = Array.from({length: 24}, (_, i) => {
+            const hour = new Date();
+            hour.setHours(hour.getHours() - (23 - i));
+            return hour.getHours() + ':00';
+        });
+        
+        // Simuliere Trend-Daten basierend auf aktuellen Component-Werten
+        const meanValues = chartData.mean_times || [];
+        const avgMean = meanValues.reduce((a, b) => a + b, 0) / meanValues.length || 0;
+        const avgP95 = (chartData.p95_times || []).reduce((a, b) => a + b, 0) / (chartData.p95_times?.length || 1);
+        
+        const trendMean = hours.map(() => avgMean + (Math.random() - 0.5) * avgMean * 0.2);
+        const trendP95 = hours.map(() => avgP95 + (Math.random() - 0.5) * avgP95 * 0.3);
+        
+        performanceTrendChart.data.labels = hours.slice(-12); // Letzte 12h für Übersichtlichkeit
+        performanceTrendChart.data.datasets[0].data = trendMean.slice(-12);
+        performanceTrendChart.data.datasets[1].data = trendP95.slice(-12);
+        performanceTrendChart.update('none');
+    }
+}
+
+// Events Stream Functions
+function updateEventsStream(eventsData) {
+    if (!Array.isArray(eventsData)) return;
+    
+    const tableBody = document.getElementById('eventsTableBody');
+    if (!tableBody) return;
+    
+    if (eventsData.length === 0) {
+        tableBody.innerHTML = `
+            <tr>
+                <td colspan="4" class="text-center text-muted">
+                    Keine ${currentEventsPriority} Events in der letzten Stunde
+                </td>
+            </tr>
+        `;
+        return;
+    }
+    
+    // Zeige nur die letzten 10 Events
+    const recentEvents = eventsData.slice(0, 10);
+    
+    tableBody.innerHTML = recentEvents.map(event => {
+        const priorityColor = getPriorityColor(event.priority);
+        const timeStr = event.timestamp ? event.timestamp.substring(11, 16) : '--:--';
+        const component = event.component || 'System';
+        const message = event.message || 'Keine Nachricht';
+        
+        return `
+            <tr class="event-row" data-priority="${event.priority}">
+                <td><small class="text-muted">${timeStr}</small></td>
+                <td><small>${component}</small></td>
+                <td>
+                    <span class="badge ${priorityColor} text-white" style="font-size: 0.7em;">
+                        ${getPriorityIcon(event.priority)} ${event.priority?.toUpperCase() || 'UNKNOWN'}
+                    </span>
+                </td>
+                <td>
+                    <small class="event-message" title="${message}">
+                        ${message.length > 60 ? message.substring(0, 60) + '...' : message}
+                    </small>
+                </td>
+            </tr>
+        `;
+    }).join('');
+}
+
+function getPriorityColor(priority) {
+    switch (priority?.toLowerCase()) {
+        case 'critical': return 'bg-danger';
+        case 'high': return 'bg-warning';
+        case 'medium': return 'bg-info';
+        default: return 'bg-secondary';
+    }
+}
+
+function getPriorityIcon(priority) {
+    switch (priority?.toLowerCase()) {
+        case 'critical': return '🔴';
+        case 'high': return '🟠';
+        case 'medium': return '🟡';
+        default: return '⚪';
+    }
+}
+
+function refreshEventsStream() {
+    const btn = event.target.closest('button');
+    const originalHtml = btn.innerHTML;
+    btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span>';
+    btn.disabled = true;
+    
+    fetch(`/admin/api/claude/logs?priority=${currentEventsPriority}&hours=1`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                updateEventsStream(data.data);
+                resetEventsCountdown();
+            } else {
+                showAlert('Fehler', 'Konnte Events nicht laden: ' + data.error, 'warning');
+            }
+        })
+        .catch(error => {
+            showAlert('Fehler', 'Netzwerkfehler beim Events-Laden', 'danger');
+        })
+        .finally(() => {
+            btn.innerHTML = originalHtml;
+            btn.disabled = false;
+        });
+}
+
+// Events Countdown Timer
+function startEventsCountdown() {
+    eventsRefreshInterval = setInterval(() => {
+        eventsCountdown--;
+        const countdownElement = document.getElementById('eventsRefreshCountdown');
+        if (countdownElement) {
+            countdownElement.textContent = eventsCountdown;
+        }
+        
+        if (eventsCountdown <= 0) {
+            refreshEventsStream();
+            resetEventsCountdown();
+        }
+    }, 1000);
+}
+
+function resetEventsCountdown() {
+    eventsCountdown = 30;
+    const countdownElement = document.getElementById('eventsRefreshCountdown');
+    if (countdownElement) {
+        countdownElement.textContent = eventsCountdown;
+    }
+}
+
+// Events Priority Filter
+document.addEventListener('click', function(e) {
+    if (e.target.matches('[data-priority]')) {
+        e.preventDefault();
+        const newPriority = e.target.getAttribute('data-priority');
+        currentEventsPriority = newPriority;
+        
+        // Update Filter Display
+        document.getElementById('eventsPriorityFilter').textContent = 
+            newPriority === 'all' ? 'Alle' : 
+            newPriority.charAt(0).toUpperCase() + newPriority.slice(1);
+        
+        // Refresh Events
+        refreshEventsStream();
+    }
+});
+
+// Trend Toggle Buttons
+document.addEventListener('click', function(e) {
+    if (e.target.matches('[data-trend]')) {
+        // Update active state
+        document.querySelectorAll('[data-trend]').forEach(btn => btn.classList.remove('active'));
+        e.target.classList.add('active');
+        
+        // For MVP, this is just visual - actual 7d data would need backend implementation
+        const period = e.target.getAttribute('data-trend');
+        console.log('Trend period selected:', period);
+        // TODO: Implement 7d data loading when backend is ready
+    }
+});
+
+// Intersection Observer für Lazy Chart Loading
+const observeChartContainers = () => {
+    const chartContainers = document.querySelectorAll('[data-chart-type]');
+    
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                const chartType = entry.target.getAttribute('data-chart-type');
+                
+                switch (chartType) {
+                    case 'sources':
+                        initSourcesChart();
+                        break;
+                    case 'articles':
+                        initArticlesChart();
+                        break;
+                    case 'courts':
+                        initCourtsChart();
+                        break;
+                    case 'performance':
+                        initPerformanceChart();
+                        break;
+                    case 'trend':
+                        initTrendChart();
+                        break;
+                }
+                
+                // Stop observing after chart is loaded
+                observer.unobserve(entry.target);
+            }
+        });
+    }, {
+        rootMargin: '50px' // Load charts 50px before they come into view
+    });
+    
+    chartContainers.forEach(container => {
+        observer.observe(container);
+    });
+};
+
+// Adaptive Auto-Refresh basierend auf Network Connection
+const startAdaptiveRefresh = () => {
+    const refreshInterval = networkConfig.refreshInterval;
+    
+    console.log(`Starting adaptive refresh every ${refreshInterval / 1000}s based on connection: ${networkConfig.connectionType}`);
+    
+    // Health Monitoring weniger häufig bei langsamer Verbindung
+    setInterval(() => {
+        if (!document.hidden) { // Pause when tab is not active
+            refreshClaudeHealth();
+        }
+    }, Math.max(refreshInterval, 60000)); // Minimum 1 minute
+    
+    // General stats refresh
+    setInterval(() => {
+        if (!document.hidden) {
+            fetch('{{ url_for("admin.admin_dashboard.api_stats") }}')
+                .then(response => response.json())
+                .then(data => {
+                    console.log('Stats aktualisiert:', data);
+                })
+                .catch(error => console.error('Auto-Refresh Fehler:', error));
+        }
+    }, refreshInterval);
+};
+
+// Page Visibility API für Battery Optimization
+const handleVisibilityChange = () => {
+    if (document.hidden) {
+        console.log('Page hidden - pausing auto-refresh');
+        // Auto-refresh wird durch !document.hidden Checks pausiert
+    } else {
+        console.log('Page visible - resuming auto-refresh');
+        // Sofortiger Refresh bei Return
+        refreshClaudeHealth();
+    }
+};
+
+// Initialize everything on page load
+document.addEventListener('DOMContentLoaded', function() {
+    // Preload critical API endpoints für bessere UX
+    const preloadPromises = [
+        fetch('/admin/api/claude/status').catch(() => null),
+        fetch('/admin/api/claude/performance').catch(() => null)
+    ];
+    
+    // Start observing charts for lazy loading
+    observeChartContainers();
+    
+    // Initialize critical components immediately
+    refreshClaudeHealth();
+    
+    // Start events countdown
+    startEventsCountdown();
+    
+    // Start smart polling
+    smartPoller.start();
+    
+    // Monitor page visibility for battery optimization
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    
+    // Enhanced Performance monitoring für Mobile Optimization
+    if (window.performance && window.performance.timing) {
+        window.addEventListener('load', () => {
+            const loadTime = window.performance.timing.loadEventEnd - window.performance.timing.navigationStart;
+            console.log(`Dashboard load time: ${loadTime}ms`);
+            
+            // Chart.js performance metrics
+            setTimeout(() => {
+                const chartMetrics = window.chartLoader?.getMetrics();
+                if (chartMetrics) {
+                    console.log('📊 Chart Performance:', chartMetrics);
+                    console.log(`Chart.js load time: ${Math.round(chartMetrics.loadTime)}ms`);
+                    console.log(`Charts created: ${chartMetrics.chartsCreated}`);
+                    console.log(`Est. memory usage: ${chartMetrics.memoryUsage}KB`);
+                }
+                
+                // SVG Icon system metrics
+                const iconMetrics = window.svgIconSystem?.measureIconLoadPerformance?.();
+                if (iconMetrics) {
+                    console.log('🎨 Icon Performance:', iconMetrics);
+                }
+            }, 2000);
+            
+            // Performance targets
+            if (loadTime < 300) {
+                console.log('✅ Load time target achieved: <300ms');
+            } else {
+                console.log(`⚠️ Load time: ${loadTime}ms (target: <300ms)`);
+            }
+            
+            // Mobile-specific performance
+            if (window.innerWidth < 768) {
+                console.log(`📱 Mobile load time: ${loadTime}ms`);
+                if (loadTime < 500) {
+                    console.log('✅ Mobile performance target achieved');
+                }
+            }
+        });
+    }
+    
+    console.log('Dashboard initialized with lazy loading and adaptive refresh');
+});
+
+// Auto-Refresh wird jetzt durch adaptive refresh gehandhabt
+// Siehe startAdaptiveRefresh() function oben
+</script>
+{% endblock %}

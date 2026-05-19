@@ -1,0 +1,182 @@
+{% extends "base.html" %}
+
+{% block title %}
+{% if decision %}{{ decision.title or decision.case_number or 'Entscheidung' }} - DSGVO-Crawler{% else %}Entscheidung nicht gefunden{% endif %}
+{% endblock %}
+
+{% block content %}
+{% if decision %}
+<div class="row">
+    <div class="col-lg-8">
+        <!-- Hauptinhalt -->
+        <div class="card">
+            <div class="card-header">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <h1 class="h3 mb-1">{{ decision.title or 'Ohne Titel' }}</h1>
+                        {% if decision.case_number %}
+                        <p class="text-muted mb-0">Az: {{ decision.case_number }}</p>
+                        {% endif %}
+                    </div>
+                    <div>
+                        <a href="{{ url_for('public.search') }}" class="btn btn-outline-secondary">
+                            <i class="bi bi-arrow-left"></i> Zurück zur Suche
+                        </a>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card-body">
+                <!-- Leitsatz -->
+                {% if decision.leitsatz %}
+                <div class="mb-4">
+                    <h5>Leitsatz</h5>
+                    <div class="alert alert-info">
+                        {{ decision.leitsatz }}
+                    </div>
+                </div>
+                {% endif %}
+                
+                <!-- Tenor -->
+                {% if decision.tenor %}
+                <div class="mb-4">
+                    <h5>Tenor</h5>
+                    <div class="alert alert-success">
+                        {{ decision.tenor }}
+                    </div>
+                </div>
+                {% endif %}
+                
+                <!-- Volltext -->
+                {% if decision.full_text_anonymized %}
+                <div class="mb-4">
+                    <h5>Entscheidungstext</h5>
+                    <div class="border rounded p-3 bg-light" style="max-height: 600px; overflow-y: auto;">
+                        <pre style="white-space: pre-wrap; font-family: inherit;">{{ decision.full_text_anonymized }}</pre>
+                    </div>
+                </div>
+                {% elif decision.summary %}
+                <div class="mb-4">
+                    <h5>Zusammenfassung</h5>
+                    <p>{{ decision.summary }}</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-lg-4">
+        <!-- Metadaten-Sidebar -->
+        <div class="card sticky-top" style="top: 1rem;">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="bi bi-info-circle"></i> Metadaten
+                </h5>
+            </div>
+            <div class="card-body">
+                <!-- Gericht -->
+                {% if decision.court %}
+                <div class="mb-3">
+                    <strong>Gericht:</strong><br>
+                    <span class="badge bg-secondary">{{ decision.court }}</span>
+                </div>
+                {% endif %}
+                
+                <!-- Datum -->
+                {% if decision.decision_date %}
+                <div class="mb-3">
+                    <strong>Entscheidungsdatum:</strong><br>
+                    <i class="bi bi-calendar3"></i> {{ decision.decision_date }}
+                </div>
+                {% endif %}
+                
+                <!-- DSGVO-Artikel -->
+                {% if decision.gdpr_articles %}
+                <div class="mb-3">
+                    <strong>DSGVO-Artikel:</strong><br>
+                    {% for article in decision.gdpr_articles %}
+                    <span class="badge bg-info text-dark me-1 mb-1">{{ article }}</span>
+                    {% endfor %}
+                </div>
+                {% endif %}
+                
+                <!-- Keywords -->
+                {% if decision.keywords %}
+                <div class="mb-3">
+                    <strong>Schlagwörter:</strong><br>
+                    {% for keyword in decision.keywords %}
+                    <span class="badge bg-light text-dark me-1 mb-1">{{ keyword }}</span>
+                    {% endfor %}
+                </div>
+                {% endif %}
+                
+                <!-- Quelle -->
+                <div class="mb-3">
+                    <strong>Datenquelle:</strong><br>
+                    <span class="badge bg-primary">{{ decision.source or 'Unbekannt' }}</span>
+                </div>
+                
+                <!-- Qualität -->
+                {% if decision.quality_score %}
+                <div class="mb-3">
+                    <strong>Qualitätsbewertung:</strong><br>
+                    {% for i in range(1, 6) %}
+                        {% if i <= decision.quality_score %}
+                        <i class="bi bi-star-fill text-warning"></i>
+                        {% else %}
+                        <i class="bi bi-star text-muted"></i>
+                        {% endif %}
+                    {% endfor %}
+                    <small class="text-muted">({{ decision.quality_score }}/5)</small>
+                </div>
+                {% endif %}
+                
+                <!-- Rechtskraft -->
+                {% if decision.legal_force_status %}
+                <div class="mb-3">
+                    <strong>Rechtskraft:</strong><br>
+                    <span class="badge {% if decision.legal_force_status == 'rechtskräftig' %}bg-success{% elif decision.legal_force_status == 'nicht rechtskräftig' %}bg-warning{% else %}bg-secondary{% endif %}">
+                        {{ decision.legal_force_status }}
+                    </span>
+                </div>
+                {% endif %}
+                
+                <!-- Original-Link -->
+                {% if decision.url %}
+                <div class="mb-3">
+                    <a href="{{ decision.url }}" target="_blank" class="btn btn-outline-primary btn-sm w-100">
+                        <i class="bi bi-box-arrow-up-right"></i> Original öffnen
+                    </a>
+                </div>
+                {% endif %}
+                
+                <!-- Export-Button -->
+                <div class="d-grid gap-2">
+                    <a href="{{ url_for('export.export_excel', q='id:' ~ decision.id) }}" 
+                       class="btn btn-success">
+                        <i class="bi bi-file-earmark-excel"></i> Als Excel exportieren
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% else %}
+<!-- Entscheidung nicht gefunden -->
+<div class="text-center py-5">
+    <i class="bi bi-exclamation-triangle display-1 text-warning mb-3"></i>
+    <h2>Entscheidung nicht gefunden</h2>
+    <p class="text-muted">Die angeforderte Entscheidung konnte nicht geladen werden.</p>
+    
+    <div class="mt-4">
+        <a href="{{ url_for('public.search') }}" class="btn btn-primary">
+            <i class="bi bi-search"></i> Zur Suche
+        </a>
+        <a href="{{ url_for('public.index') }}" class="btn btn-outline-secondary">
+            <i class="bi bi-house"></i> Zur Startseite
+        </a>
+    </div>
+</div>
+{% endif %}
+{% endblock %}

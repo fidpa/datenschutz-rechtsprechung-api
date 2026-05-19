@@ -1,0 +1,416 @@
+/* Datenschutz-Rechtsprechung API Admin Dashboard CSS */
+
+/* ============================================
+   Dashboard Layout & Grid System
+   ============================================ */
+
+.admin-dashboard {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 1rem;
+}
+
+/* Stats Grid - Responsive */
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1.25rem;
+    margin-bottom: 2.5rem;
+}
+
+/* Quick Actions Grid */
+.action-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 1.25rem;
+    margin-top: 1.25rem;
+}
+
+/* Info & Charts Grid */
+.info-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+    gap: 1.5rem;
+    margin-top: 1.25rem;
+}
+
+/* ============================================
+   Enhanced Metric Cards
+   ============================================ */
+
+.metric-card {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border-radius: 16px;
+    padding: 2rem 1.5rem;
+    margin-bottom: 1.5rem;
+    box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    overflow: hidden;
+}
+
+.metric-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(135deg, rgba(255,255,255,0.1) 0%, transparent 50%);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.metric-card:hover {
+    transform: translateY(-4px) scale(1.02);
+    box-shadow: 0 12px 40px rgba(0,0,0,0.15);
+}
+
+.metric-card:hover::before {
+    opacity: 1;
+}
+
+.metric-card.green {
+    background: linear-gradient(135deg, #56ab2f 0%, #a8e063 100%);
+}
+
+.metric-card.blue {
+    background: linear-gradient(135deg, #2193b0 0%, #6dd5ed 100%);
+}
+
+.metric-card.orange {
+    background: linear-gradient(135deg, #f2994a 0%, #f2c94c 100%);
+}
+
+.metric-card.purple {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+/* Metric Card Content */
+.metric-value {
+    font-size: 2.75rem;
+    font-weight: 800;
+    line-height: 1;
+    margin: 0.5rem 0;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.metric-label {
+    font-size: 0.85rem;
+    opacity: 0.9;
+    text-transform: uppercase;
+    letter-spacing: 1.2px;
+    font-weight: 600;
+}
+
+.metric-change {
+    font-size: 0.9rem;
+    opacity: 0.8;
+    margin-top: 0.25rem;
+}
+
+/* ============================================
+   Enhanced Chart Containers
+   ============================================ */
+
+.chart-container {
+    background: white;
+    border-radius: 16px;
+    padding: 2rem;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+    margin-bottom: 1.5rem;
+    border: 1px solid rgba(0,0,0,0.05);
+    transition: all 0.3s ease;
+}
+
+.chart-container:hover {
+    box-shadow: 0 8px 30px rgba(0,0,0,0.12);
+    transform: translateY(-2px);
+}
+
+.chart-container h5 {
+    color: #2d3748;
+    font-weight: 700;
+    margin-bottom: 1.5rem;
+    font-size: 1.125rem;
+}
+
+.chart-container h5 i {
+    color: #667eea;
+    margin-right: 0.5rem;
+}
+
+/* ============================================
+   Action Cards
+   ============================================ */
+
+.action-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem 1.5rem;
+    background: white;
+    border: 2px solid #e8ecf1;
+    border-radius: 12px;
+    text-decoration: none;
+    color: #2d3748;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    overflow: hidden;
+    min-height: 140px;
+}
+
+.action-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, #4299e1, #667eea);
+    transform: translateY(-100%);
+    transition: transform 0.3s ease;
+}
+
+.action-card:hover {
+    transform: translateY(-6px);
+    box-shadow: 0 15px 35px rgba(0,0,0,0.12);
+    border-color: #cbd5e0;
+    text-decoration: none;
+    color: #2d3748;
+}
+
+.action-card:hover::before {
+    transform: translateY(0);
+}
+
+.action-card i {
+    font-size: 2.5rem;
+    margin-bottom: 1rem;
+    background: linear-gradient(135deg, #667eea 0%, #4299e1 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    transition: transform 0.3s ease;
+}
+
+.action-card:hover i {
+    transform: scale(1.15);
+}
+
+.action-card span {
+    font-weight: 600;
+    font-size: 1rem;
+    text-align: center;
+    line-height: 1.4;
+}
+
+/* ============================================
+   System Metrics Enhanced
+   ============================================ */
+
+.system-metric {
+    padding: 1.5rem;
+    background: #f8fafc;
+    border-radius: 12px;
+    margin-bottom: 1rem;
+    border: 1px solid #e2e8f0;
+    transition: all 0.3s ease;
+}
+
+.system-metric:hover {
+    background: #f1f5f9;
+    border-color: #cbd5e0;
+}
+
+.system-metric .progress {
+    height: 10px;
+    border-radius: 5px;
+    background-color: #e2e8f0;
+    overflow: hidden;
+}
+
+.system-metric .progress-bar {
+    border-radius: 5px;
+    transition: width 0.6s ease;
+}
+
+/* ============================================
+   Activity Items Enhanced
+   ============================================ */
+
+.activity-item {
+    padding: 1rem;
+    border-left: 4px solid #667eea;
+    margin-bottom: 0.75rem;
+    background: #f8fafc;
+    border-radius: 0 12px 12px 0;
+    transition: all 0.3s ease;
+    border: 1px solid #e2e8f0;
+    border-left: 4px solid #667eea;
+}
+
+.activity-item:hover {
+    background: #f1f5f9;
+    border-left-color: #4299e1;
+    transform: translateX(4px);
+}
+
+.activity-item:last-child {
+    margin-bottom: 0;
+}
+
+.activity-item i {
+    color: #667eea;
+    margin-right: 0.5rem;
+}
+
+/* ============================================
+   CLI Command Styling Enhanced
+   ============================================ */
+
+.cli-command {
+    font-family: 'SF Mono', 'Monaco', 'Cascadia Code', 'Roboto Mono', monospace;
+    background: #1a202c;
+    color: #68d391;
+    padding: 0.75rem 1rem;
+    border-radius: 8px;
+    margin: 0.75rem 0;
+    font-size: 0.9rem;
+    border: 1px solid #2d3748;
+    box-shadow: inset 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.cli-command::before {
+    content: '$ ';
+    color: #81e6d9;
+    font-weight: bold;
+}
+
+/* ============================================
+   Button Enhancements
+   ============================================ */
+
+.btn {
+    border-radius: 8px;
+    font-weight: 600;
+    padding: 0.5rem 1rem;
+    transition: all 0.3s ease;
+    border-width: 2px;
+}
+
+.btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+
+.btn-success {
+    background: linear-gradient(135deg, #56ab2f 0%, #48bb78 100%);
+    border-color: #56ab2f;
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, #667eea 0%, #4299e1 100%);
+    border-color: #667eea;
+}
+
+.btn-info {
+    background: linear-gradient(135deg, #2193b0 0%, #4299e1 100%);
+    border-color: #2193b0;
+}
+
+/* ============================================
+   Loading States
+   ============================================ */
+
+.loading {
+    opacity: 0.7;
+    pointer-events: none;
+}
+
+.skeleton-loader {
+    animation: pulse 1.5s ease-in-out infinite;
+}
+
+.skeleton-line {
+    height: 1rem;
+    background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+    background-size: 200% 100%;
+    animation: loading 1.5s infinite;
+    border-radius: 4px;
+    margin-bottom: 0.5rem;
+}
+
+.skeleton-line.short {
+    width: 60%;
+}
+
+@keyframes loading {
+    0% { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
+}
+
+@keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+}
+
+/* ============================================
+   Responsive Design
+   ============================================ */
+
+@media (max-width: 768px) {
+    .admin-dashboard {
+        padding: 0.5rem;
+    }
+    
+    .stats-grid {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+    
+    .action-grid {
+        grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    }
+    
+    .info-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .metric-card {
+        padding: 1.5rem 1rem;
+    }
+    
+    .metric-value {
+        font-size: 2.25rem;
+    }
+    
+    .chart-container {
+        padding: 1.5rem;
+    }
+    
+    .action-card {
+        padding: 1.5rem 1rem;
+        min-height: 120px;
+    }
+    
+    .action-card i {
+        font-size: 2rem;
+    }
+}
+
+@media (max-width: 576px) {
+    .metric-value {
+        font-size: 2rem;
+    }
+    
+    .action-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .chart-container h5 {
+        font-size: 1rem;
+    }
+}

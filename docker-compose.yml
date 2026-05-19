@@ -1,0 +1,221 @@
+version: '3.8'
+
+services:
+  # =============================================================================
+  # PostgreSQL Datenbank mit deutscher Konfiguration
+  # =============================================================================
+  postgres:
+    image: postgres:15-alpine
+    container_name: dsr_postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: datenschutz_rechtsprechung_api
+      POSTGRES_USER: dsr_user
+      POSTGRES_PASSWORD: dsr_password
+      # Deutsche Locale für Volltext-Suche
+      POSTGRES_INITDB_ARGS: "--locale=de_DE.utf8 --encoding=UTF8"
+      LANG: de_DE.utf8
+      LC_ALL: de_DE.utf8
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U dsr_user -d datenschutz_rechtsprechung_api"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - dsr_network
+
+  # =============================================================================
+  # Redis für Cache und Celery Task Queue
+  # =============================================================================
+  redis:
+    image: redis:7-alpine
+    container_name: dsr_redis
+    restart: unless-stopped
+    command: redis-server --appendonly yes --maxmemory 512mb --maxmemory-policy allkeys-lru
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+    networks:
+      - dsr_network
+
+  # =============================================================================
+  # pgAdmin für Datenbank-Management (optional)
+  # =============================================================================
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: dsr_pgadmin
+    restart: unless-stopped
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@datenschutz-rechtsprechung-api.local
+      PGADMIN_DEFAULT_PASSWORD: admin
+      PGADMIN_CONFIG_SERVER_MODE: 'False'
+      PGADMIN_CONFIG_MASTER_PASSWORD_REQUIRED: 'False'
+    ports:
+      - "5050:80"
+    volumes:
+      - pgadmin_data:/var/lib/pgadmin
+    depends_on:
+      - postgres
+    networks:
+      - dsr_network
+    profiles:
+      - tools
+
+  # =============================================================================
+  # Flower für Celery Monitoring (optional)
+  # =============================================================================
+  flower:
+    image: mher/flower:latest
+    container_name: dsr_flower
+    restart: unless-stopped
+    command: celery --broker=redis://redis:6379/1 flower --port=5555
+    environment:
+      CELERY_BROKER_URL: redis://redis:6379/1
+      CELERY_RESULT_BACKEND: redis://redis:6379/2
+      FLOWER_BASIC_AUTH: admin:admin
+    ports:
+      - "5555:5555"
+    depends_on:
+      - redis
+    networks:
+      - dsr_network
+    profiles:
+      - monitoring
+
+  # =============================================================================
+  # Celery Worker (für Produktion)
+  # =============================================================================
+  celery-worker:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile
+    container_name: dsr_celery_worker
+    restart: unless-stopped
+    command: celery -A src.tasks worker --loglevel=info --concurrency=4
+    environment:
+      DATABASE_URL: postgresql+asyncpg://dsr_user:dsr_password@postgres:5432/datenschutz_rechtsprechung_api
+      REDIS_URL: redis://redis:6379/0
+      CELERY_BROKER_URL: redis://redis:6379/1
+      CELERY_RESULT_BACKEND: redis://redis:6379/2
+    volumes:
+      - ./src:/app/src
+      - ./logs:/app/logs
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - dsr_network
+    profiles:
+      - production
+
+  # =============================================================================
+  # Celery Beat Scheduler (für Produktion)
+  # =============================================================================
+  celery-beat:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile
+    container_name: dsr_celery_beat
+    restart: unless-stopped
+    command: celery -A src.tasks beat --loglevel=info
+    environment:
+      DATABASE_URL: postgresql+asyncpg://dsr_user:dsr_password@postgres:5432/datenschutz_rechtsprechung_api
+      REDIS_URL: redis://redis:6379/0
+      CELERY_BROKER_URL: redis://redis:6379/1
+      CELERY_RESULT_BACKEND: redis://redis:6379/2
+    volumes:
+      - ./src:/app/src
+      - ./logs:/app/logs
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - dsr_network
+    profiles:
+      - production
+
+  # =============================================================================
+  # API Server (für Produktion)
+  # =============================================================================
+  api:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile
+    container_name: dsr_api
+    restart: unless-stopped
+    command: uvicorn src.api.main:app --host 0.0.0.0 --port 8000 --workers 4
+    environment:
+      DATABASE_URL: postgresql+asyncpg://dsr_user:dsr_password@postgres:5432/datenschutz_rechtsprechung_api
+      REDIS_URL: redis://redis:6379/0
+      API_HOST: 0.0.0.0
+      API_PORT: 8000
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./src:/app/src
+      - ./logs:/app/logs
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - dsr_network
+    profiles:
+      - production
+
+# =============================================================================
+# Volumes für persistente Daten
+# =============================================================================
+volumes:
+  postgres_data:
+    driver: local
+  redis_data:
+    driver: local
+  pgadmin_data:
+    driver: local
+
+# =============================================================================
+# Netzwerk
+# =============================================================================
+networks:
+  dsr_network:
+    driver: bridge
+
+# =============================================================================
+# Verwendung:
+# =============================================================================
+# Entwicklung (nur DB & Redis):
+#   docker-compose up -d postgres redis
+#
+# Mit Tools (pgAdmin):
+#   docker-compose --profile tools up -d
+#
+# Mit Monitoring (Flower):
+#   docker-compose --profile monitoring up -d
+#
+# Produktion (alle Services):
+#   docker-compose --profile production up -d
+#
+# Logs anzeigen:
+#   docker-compose logs -f [service-name]
+#
+# Services stoppen:
+#   docker-compose down
+#
+# Daten löschen:
+#   docker-compose down -v

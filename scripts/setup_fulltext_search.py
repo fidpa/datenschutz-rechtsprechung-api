@@ -18,8 +18,6 @@ from src.database import db_manager
 from src.config import settings
 
 # Logging initialisieren
-import structlog
-
 logger = structlog.get_logger()
 
 

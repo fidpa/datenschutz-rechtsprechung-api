@@ -406,7 +406,6 @@ def claude_analysis(format, days):
 
     import subprocess
     import sys
-    from pathlib import Path
 
     try:
         # Führe daily_analysis.py aus und capture output
@@ -483,7 +482,6 @@ def claude_analysis(format, days):
 def claude_health(format):
     """Berechne aktuellen System Health Score basierend auf Claude Events."""
 
-    from pathlib import Path
     import glob
 
     try:
@@ -575,7 +573,6 @@ def claude_health(format):
 def claude_logs(priority, component, hours, format):
     """Zeige kritische Events aus Claude Logging System."""
 
-    from pathlib import Path
     import glob
     from datetime import datetime, timedelta
 

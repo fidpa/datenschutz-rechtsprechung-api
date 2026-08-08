@@ -29,6 +29,11 @@ packages = ["src"]
 
 [tool.black]
 line-length = 100
+# Pinned to the major version installed by requirements.txt and CI (23.11.0).
+# A newer black changes its formatting defaults: 26.3.1 wanted to reformat 50
+# files in a tree that 23.11.0 considers clean. Failing loudly beats a silent
+# mass-reformat that then turns the CI red.
+required-version = "23"
 target-version = ["py310", "py311", "py312"]
 extend-exclude = '''
 /(

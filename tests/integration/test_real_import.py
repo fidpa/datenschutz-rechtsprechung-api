@@ -152,7 +152,7 @@ class TestRealDatabaseIntegration:
 
                 # Check GDPR articles extracted
                 dsr_decisions = (
-                    session.query(Decision).filter(Decision.gdpr_articles != None).count()
+                    session.query(Decision).filter(Decision.gdpr_articles.is_not(None)).count()
                 )
                 assert dsr_decisions > 0
 

@@ -1,6 +1,12 @@
 [flake8]
 # Black owns code formatting; flake8 guards correctness (all F-codes stay on).
-# CI lints `src` (the showcase surface). scripts/ and tests/ are not gated.
+#
+# CI runs `flake8 .` over the whole tree, so `src`, `scripts` and `tests` are
+# all gated. The gate is kept wide on purpose: F821 (undefined name) is a
+# runtime NameError wherever it appears, and three of them sat unnoticed in
+# scripts/ and tests/ because an earlier revision of this file claimed the CI
+# only linted `src`. Housekeeping codes are waived per directory below instead
+# of narrowing the gate.
 #
 # Deliberately ignored, with rationale:
 #   E203,W503   black-compatibility (PEP 8 disagrees with black here)
@@ -38,4 +44,9 @@ exclude =
     migrations
 per-file-ignores =
     __init__.py:F401
+# Test modules and one-off scripts accumulate imports and bindings that are kept
+# for readability or were left behind by a refactor. Waived here rather than in
+# `extend-ignore`, so F401/F841 keep gating `src`.
+    tests/*:F401,F841
+    scripts/*:F401,F841
 max-complexity = 30

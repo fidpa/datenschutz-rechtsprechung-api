@@ -8,6 +8,7 @@ import pytest
 import requests
 import time
 import gzip
+import json
 import os
 from pathlib import Path
 from selenium import webdriver

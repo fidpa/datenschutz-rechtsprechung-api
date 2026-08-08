@@ -11,11 +11,14 @@ Author: Datenschutz-Rechtsprechung API Team
 Date: 21.08.2025
 """
 
+import json
 import sys
 import click
 from pathlib import Path
 from datetime import datetime
 from typing import Optional
+
+from sqlalchemy import text
 
 # Add src to path
 sys.path.insert(0, str(Path(__file__).parent.parent))

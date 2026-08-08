@@ -76,3 +76,6 @@ pytz==2023.3.post1
 tenacity==8.2.3  # Retry logic
 tqdm==4.66.1     # Progress bars
 click==8.1.7     # CLI tools
+rich==13.7.1     # Tables/progress for the admin CLI (scripts/admin.py imports
+                 # rich.console, rich.table, rich.progress and rich.box). No test
+                 # imports that module, so CI never caught the missing pin.

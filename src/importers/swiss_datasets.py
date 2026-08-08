@@ -107,8 +107,9 @@ class SwissDatasetImporter(BaseImporter):
             # Fallback: Hash aus verfügbaren Feldern
             import hashlib
 
+            # usedforsecurity=False: identifier, not a security digest.
             content = str(raw_data.get("text", ""))[:1000]
-            return hashlib.md5(content.encode()).hexdigest()[:16]
+            return hashlib.md5(content.encode(), usedforsecurity=False).hexdigest()[:16]
 
     def is_relevant(self, raw_data: Dict[str, Any]) -> bool:
         """

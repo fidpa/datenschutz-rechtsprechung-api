@@ -315,9 +315,12 @@ class BaseCollector(ABC):
 
             # Generiere ID falls nicht vorhanden
             if not decision.source_id:
-                # Verwende Hash von Titel und Datum als Fallback
+                # Verwende Hash von Titel und Datum als Fallback.
+                # usedforsecurity=False: identifier, not a security digest.
                 content = f"{decision.title}_{decision.decision_date}"
-                decision.source_id = hashlib.md5(content.encode()).hexdigest()
+                decision.source_id = hashlib.md5(
+                    content.encode(), usedforsecurity=False
+                ).hexdigest()
 
             self.session.add(decision)
             await self.session.commit()

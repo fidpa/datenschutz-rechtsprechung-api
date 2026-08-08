@@ -39,7 +39,8 @@ class ResumeManager:
             with open(self.input_file, "rb") as f:
                 # Erste 1MB für Hash verwenden (schneller bei großen Dateien)
                 data = f.read(1024 * 1024)
-                return hashlib.md5(data).hexdigest()
+                # usedforsecurity=False: file fingerprint for resume matching.
+                return hashlib.md5(data, usedforsecurity=False).hexdigest()
         except Exception as e:
             click.echo(f"⚠️ Warnung: Konnte File-Hash nicht berechnen: {e}", err=True)
             return ""

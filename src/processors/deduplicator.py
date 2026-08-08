@@ -454,8 +454,9 @@ class DecisionDeduplicator:
         # Normalisiere Text
         normalized = self._normalize_text(text[:5000])  # Erste 5000 Zeichen
 
-        # Generiere Hash
-        return hashlib.md5(normalized.encode()).hexdigest()
+        # Generiere Hash. usedforsecurity=False: content fingerprint for
+        # duplicate detection, not a security digest.
+        return hashlib.md5(normalized.encode(), usedforsecurity=False).hexdigest()
 
     def _calculate_completeness(self, decision: Decision) -> int:
         """

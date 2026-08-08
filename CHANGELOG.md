@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.1] — 2026-08-08
+
+A maintenance release with no functional changes to the crawler, the API or the
+anonymisation pipeline. It repairs the parts of the project that were supposed
+to catch mistakes and weren't: the CI had failed on every run since the initial
+release, and the version the software reported about itself was invented.
+
 ### Fixed
 
 - **The project version is now declared once, in `pyproject.toml`.** Four places
@@ -37,6 +44,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   aborted collection of `tests/test_anonymizer.py` and took the whole `test` job
   with it; on a 3.12.3 workstation the same tree passed. `pydantic` is now
   pinned to `2.7.4`, the first release carrying the fix.
+- **The admin CLI starts from a clean install.** `scripts/admin.py` imports
+  `rich`, but no requirements file listed it, so following the documented setup
+  and running the tool produced a `ModuleNotFoundError`. No test imports that
+  module, which is why CI never noticed. `rich==13.7.1` is now pinned.
 
 ### Changed
 
@@ -45,6 +56,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   with an error instead of silently reformatting: 26.3.1 wanted to reformat 50
   files in a tree that 23.11.0 considers clean.
 - `.gitignore` now covers `.claude/`.
+
+### Security
+
+- **The five MD5 call sites are marked `usedforsecurity=False`.** They compute
+  fallback identifiers, duplicate-detection fingerprints, a resume file
+  fingerprint and cache keys — none of them a security digest. The annotation
+  says so in code rather than in a comment nobody reads, and clears bandit's
+  five `B324` HIGH findings (`src/collectors/base.py`,
+  `src/importers/swiss_datasets.py`, `src/processors/deduplicator.py`,
+  `src/processors/resume_manager.py`, `src/utils/cache.py`). No hashing
+  behaviour changes.
 
 ## [0.1.0] — 2026-05-18
 

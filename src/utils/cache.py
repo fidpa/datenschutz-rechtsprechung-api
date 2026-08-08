@@ -61,8 +61,11 @@ class RedisCache:
             if isinstance(arg, (str, int, float, bool)):
                 key_parts.append(str(arg))
             else:
-                # Für komplexe Objekte: Hash verwenden
-                key_parts.append(hashlib.md5(str(arg).encode()).hexdigest()[:8])
+                # Für komplexe Objekte: Hash verwenden.
+                # usedforsecurity=False: cache key, not a security digest.
+                key_parts.append(
+                    hashlib.md5(str(arg).encode(), usedforsecurity=False).hexdigest()[:8]
+                )
 
         # Füge Keyword-Argumente sortiert hinzu
         for k, v in sorted(kwargs.items()):

@@ -30,6 +30,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   duplicate `structlog` import in `scripts/setup_fulltext_search.py`.
 - Replaced `!= None` with `.is_not(None)` in a SQLAlchemy filter
   (`tests/integration/test_real_import.py`).
+- **The test suite runs on current Python 3.12 again.** Python 3.12.4 made
+  `recursive_guard` a keyword-only argument of `ForwardRef._evaluate()`, but the
+  `pydantic.v1` compatibility shim — which spaCy reaches through thinc — still
+  called it positionally up to pydantic 2.7.0. On the CI runner (3.12.13) that
+  aborted collection of `tests/test_anonymizer.py` and took the whole `test` job
+  with it; on a 3.12.3 workstation the same tree passed. `pydantic` is now
+  pinned to `2.7.4`, the first release carrying the fix.
 
 ### Changed
 

@@ -1,7 +1,13 @@
 # Core Web Framework
 fastapi==0.104.1
 uvicorn[standard]==0.24.0
-pydantic==2.5.0
+pydantic==2.7.4  # Minimum for Python 3.12.4+: 3.12.4 made `recursive_guard` a
+                 # keyword-only argument of `ForwardRef._evaluate()`, and the
+                 # bundled `pydantic.v1` shim (which spaCy reaches through thinc)
+                 # still called it positionally up to 2.7.0. On 3.12.13 that
+                 # aborts collection of tests/test_anonymizer.py with
+                 # "TypeError: ForwardRef._evaluate() missing 1 required
+                 # keyword-only argument: 'recursive_guard'".
 pydantic-settings==2.1.0
 python-dotenv==1.0.0
 

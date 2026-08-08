@@ -15,9 +15,13 @@ Architektur:
 Application → Middleware → Intelligence → Storage → Claude Analysis → Actions
 """
 
+from .._version import PROJECT_VERSION
 from .core.logger import EnterpriseLogger
 from .core.events import EventClassifier, EventPriority
 from .core.config import LoggingConfig
 
-__version__ = "12.1.0"
+# The version is the project's, read from pyproject.toml via src._version.
+# This module used to carry its own "12.1.0", a number that never matched a
+# release and made log events unusable for "which build is running here?".
+__version__ = PROJECT_VERSION
 __all__ = ["EnterpriseLogger", "EventClassifier", "EventPriority", "LoggingConfig"]

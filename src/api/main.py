@@ -14,6 +14,7 @@ from fastapi.exceptions import RequestValidationError
 from starlette.exceptions import HTTPException as StarletteHTTPException
 from sqlalchemy import text
 
+from src._version import PROJECT_VERSION
 from src.config import settings
 from src.database import db_manager
 
@@ -73,7 +74,7 @@ app = FastAPI(
     - OpenLegalData (geplant)
     - RIS Österreich (geplant)
     """,
-    version="1.0.0",
+    version=PROJECT_VERSION,
     docs_url="/docs",
     redoc_url="/redoc",
     openapi_url="/openapi.json",

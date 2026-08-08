@@ -13,6 +13,7 @@ from typing import Dict, Any, Optional, List
 from contextlib import asynccontextmanager
 from functools import wraps
 
+from ..._version import PROJECT_VERSION
 from .events import LogEvent, EventClassifier, EventType, EventCategory, EventPriority
 from .config import LoggingConfig, get_config
 from .storage import StorageBackend, create_storage_backend
@@ -85,7 +86,7 @@ class EnterpriseLogger:
 
         # Performance tracking
         self.hostname = socket.gethostname()
-        self.version = "12.1.0"
+        self.version = PROJECT_VERSION
 
         # Event buffer für async processing
         self._event_buffer: List[LogEvent] = []

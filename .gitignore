@@ -260,6 +260,7 @@ de_core_news_lg/
 # =============================================================================
 # Private Claude Code instructions (per-repo, never public)
 CLAUDE.md
+.claude/
 
 # Internal reports / drafts / notes
 *_BERICHT_*.md

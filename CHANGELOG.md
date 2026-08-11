@@ -7,6 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.2] — 2026-08-11
+
+### Fixed
+
+- **19 scripts under `scripts/` are executable again.** `scripts/backup-system.sh`,
+  `scripts/backup/*.sh`, `scripts/security/generate_secrets.sh`,
+  `scripts/setup-*.sh`, `scripts/start*.sh`, `scripts/test-production.sh` and the
+  remaining operational scripts listed under `scripts/` had lost their `+x` bit
+  (mode `644` instead of `755`), so running them directly (`./scripts/foo.sh`)
+  failed with `Permission denied` even though the shebang and content were
+  correct. No script content changed.
+
 ## [0.1.1] — 2026-08-08
 
 A maintenance release with no functional changes to the crawler, the API or the
